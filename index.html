@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><!-- YouTube's avatar server refuses images that name the asking page; the players set their own referrer -->
+<title>Pulse Casino</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;800&display=swap">
+<style>
+  :root { --gold: #e3c164; --gold2: #a8822c; --red: #b3121b; --felt: #0b4a2a; --felt2: #04200f; --ink: #f6efd9; --dim: #d8cfb2; --line: rgba(227,193,100,.4); --wood: #5c2f12;
+    /* perk-shop skins: the shop swaps these */
+    --t1: #23a862; --t2: #0f6a3a; --t3: #063d20; --cb1: var(--red); --cb2: #8e0d15; --chipc: var(--red); --jk1: #ff4fd8; --jk2: #ffe48f; --jk3: #3fe0ff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); font: 15px/1.4 Inter, "Segoe UI", sans-serif; min-height: 100vh; overflow-x: hidden; background: #12030a; }
+  .display, h1, h2 { font-family: Cinzel, Georgia, serif; }
+
+  /* --- animated casino backdrop (a bg.mp4 next to app.ps1 replaces it) --- */
+  #scene, #bgvid { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; object-fit: cover; }
+  /* 16:9 iframe scaled to cover the window, since object-fit doesn't apply to iframes */
+  #bgyt { position: fixed; top: 50%; left: 50%; width: max(100vw, 177.78vh); height: max(100vh, 56.25vw); transform: translate(-50%, -50%); z-index: -2; border: 0; pointer-events: none; }
+  #scene svg { width: 100%; height: 100%; display: block; }
+  #shade { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.25), rgba(0,0,0,.7) 80%), linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.35)); }
+  .sway { transform-box: fill-box; transform-origin: 50% 0; animation: sway 5s ease-in-out infinite alternate; }
+  @keyframes sway { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+  .bulb { fill: #fff3c4; animation: twinkle 1.2s steps(2) infinite; }
+  @keyframes twinkle { 50% { fill: #ff9f1c; } }
+  .reel { animation: reel linear infinite; }
+  @keyframes reel { to { transform: translateY(-260px); } }
+  .lever { transform-box: fill-box; transform-origin: 0 100%; animation: pull 7s ease-in-out infinite; }
+  @keyframes pull { 0%, 88%, 100% { transform: rotate(0); } 93% { transform: rotate(70deg); } }
+  .neon { animation: flicker 4s infinite; }
+  @keyframes flicker { 0%, 100% { opacity: 1; } 41% { opacity: 1; } 42% { opacity: .35; } 43% { opacity: 1; } 47% { opacity: .5; } 48% { opacity: 1; } }
+  .beam { position: fixed; top: -10vh; width: 60vw; height: 140vh; z-index: -2; pointer-events: none; mix-blend-mode: screen; transform-origin: 50% 0;
+    background: conic-gradient(from 170deg at 50% 0, transparent, var(--beam) 10deg, transparent 20deg); animation: beam 9s ease-in-out infinite alternate; }
+  .beam.l { left: -10vw; } .beam.r { right: -10vw; animation-delay: -4.5s; }
+  @keyframes beam { from { transform: rotate(-25deg); } to { transform: rotate(25deg); } }
+  .fall { position: fixed; top: -60px; z-index: -1; pointer-events: none; animation: fall linear infinite; }
+  @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
+  .coin { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 800 14px Inter, sans-serif; color: #7a5a12;
+    background: radial-gradient(circle at 35% 30%, #fff6c9, #f2c94c 45%, #b8860b); box-shadow: 0 0 0 2px #8a6510, 0 0 12px rgba(255,210,90,.5); }
+  .card-p { width: 30px; height: 42px; border-radius: 5px; background: #fff; display: grid; place-items: center; font-size: 20px; box-shadow: 0 0 0 2px #1a0610, 0 4px 10px #0008; }
+
+  main { max-width: 1240px; margin: auto; padding: 0 16px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; } /* minmax: wide content wraps instead of stretching the page */
+  main[hidden] { display: none; }
+  h2 { font-size: 15px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin: 0 0 12px; display: flex; align-items: center; gap: 10px; text-shadow: 0 2px 6px #000; }
+  h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+  .card { background: rgba(10,3,6,.62); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 16px; box-shadow: inset 0 0 0 3px rgba(0,0,0,.25), 0 10px 30px rgba(0,0,0,.5); }
+
+  /* marquee header */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0 6px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: clamp(26px, 5vw, 44px); font-weight: 800; letter-spacing: .08em;
+    background: linear-gradient(180deg, #fff3c4, var(--gold) 45%, var(--gold2)); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 3px 0 #3b0a1e) drop-shadow(0 0 18px rgba(227,193,100,.35)); }
+  .bulbs { height: 8px; margin-top: 6px; background: radial-gradient(circle, var(--bulb) 0 2px, transparent 3px) 0 0/16px 8px repeat-x; animation: bulbs 1s steps(2) infinite; }
+  @keyframes bulbs { to { background-position: 8px 0; } }
+  .btn { font: 700 15px Cinzel, Georgia, serif; letter-spacing: .08em; color: #1d1404; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 99px; border: 2px solid #fff3c4; background: linear-gradient(180deg, #ffe48f, var(--gold) 50%, var(--gold2)); box-shadow: 0 5px 0 #6b4f14, 0 10px 20px rgba(0,0,0,.5); }
+  .btn:hover { filter: brightness(1.1); } .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #6b4f14; } .btn:disabled { opacity: .6; cursor: default; }
+  .btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .btn.red { color: #fff; border-color: #ffb3b3; background: linear-gradient(180deg, #e0333c, var(--red) 55%, #6d070d); box-shadow: 0 5px 0 #4a0408, 0 10px 20px rgba(0,0,0,.5); }
+
+  /* now playing */
+  #now { display: flex; gap: 32px; align-items: center; padding: 28px; }
+  .disc { position: relative; flex: none; width: 220px; height: 220px; }
+  .chip { position: absolute; top: 10px; left: 90px; width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 10px 40px #000a;
+    background: radial-gradient(circle, var(--chipc) 0 52%, #fff 52% 54%, var(--chipc) 54% 70%, transparent 70%), repeating-conic-gradient(#fff 0 15deg, var(--chipc) 15deg 45deg); }
+  .chip::after { content: "♠"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 54px; color: #fff; }
+  .playing .chip { animation: spin 3s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #art { position: relative; width: 220px; height: 220px; border-radius: 12px; object-fit: cover; border: 3px solid var(--gold); box-shadow: 0 16px 50px #000c; background: #111; }
+  #art:not([src]) { visibility: hidden; }
+  .info { min-width: 0; flex: 1; padding-left: 78px; }
+  #title { font: 800 clamp(24px, 4vw, 44px)/1.1 Cinzel, Georgia, serif; margin: 0; overflow-wrap: anywhere; }
+  #artist { font-size: 20px; color: var(--gold); margin: 6px 0 2px; }
+  #album, #source { color: var(--dim); font-size: 14px; }
+  .bar { height: 6px; border-radius: 3px; background: rgba(0,0,0,.5); overflow: hidden; margin-top: 18px; }
+  .bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold2), #ffe48f); border-radius: 3px; }
+  .times { display: flex; justify-content: space-between; color: var(--dim); font-size: 12px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .eq { display: inline-flex; gap: 3px; height: 16px; align-items: end; }
+  .eq i { width: 3px; background: var(--gold); height: 30%; }
+  .playing .eq i { animation: eq .9s ease-in-out infinite alternate; }
+  .eq i:nth-child(2) { animation-delay: -.3s !important; } .eq i:nth-child(3) { animation-delay: -.6s !important; }
+  @keyframes eq { to { height: 100%; } }
+
+  /* games + apps */
+  #games { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .game { overflow: hidden; position: relative; }
+  .game img.hdr { width: 100%; aspect-ratio: 460/215; object-fit: cover; display: block; background: #111; border-bottom: 1px solid var(--line); }
+  .game .body { padding: 12px 14px 14px; }
+  .game b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row { display: flex; justify-content: space-between; color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .badges { display: flex; gap: 6px; margin-top: 10px; }
+  .badges img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--gold); }
+  .rank { position: absolute; top: 8px; left: 8px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 800 14px Cinzel, Georgia, serif; color: #fff;
+    background: radial-gradient(circle, #111 0 55%, transparent 56%), repeating-conic-gradient(#fff 0 20deg, #111 20deg 60deg); box-shadow: 0 3px 10px #000a; }
+  .game:nth-child(-n+3) .rank { background: radial-gradient(circle, var(--red) 0 55%, transparent 56%), repeating-conic-gradient(#fff 0 20deg, var(--red) 20deg 60deg); }
+  #apps { padding: 18px 20px; display: grid; gap: 12px; }
+  .app { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; }
+  .app img, .app .ph { width: 28px; height: 28px; border-radius: 6px; }
+  .app .ph { background: rgba(0,0,0,.4); }
+  .app .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .app .bar { margin-top: 5px; height: 5px; }
+  .app time { color: var(--gold); font-variant-numeric: tabular-nums; font-size: 13px; }
+  .totals { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .totals div { padding: 12px 18px; } .totals b { font: 800 24px Cinzel, Georgia, serif; color: var(--gold); display: block; }
+  .totals span { color: var(--dim); font-size: 12px; }
+  .empty { color: var(--dim); padding: 18px 20px; }
+
+  /* --- roulette table --- */
+  #table { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 32px; align-items: center; padding: 26px; /* room for the felt's rail shadows */ }
+  .felt { position: relative; padding: 7% 6% 9%; border-radius: 48px; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 35%, var(--t1) 0%, var(--t2) 45%, var(--t3) 100%);
+    box-shadow: inset 0 0 80px rgba(0,0,0,.6), 0 0 0 16px var(--wood), 0 0 0 19px var(--gold2), 0 0 0 26px #2a1406, 0 40px 90px #000; }
+  .felt.multi { background: radial-gradient(ellipse at 50% 35%, #3a5fe0 0%, #1d3596 45%, #0c1a52 100%); }
+  .tables { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .tables .btn[aria-pressed="false"] { filter: grayscale(.7) brightness(.6); }
+  .felt::before { content: ""; position: absolute; inset: 0; pointer-events: none; /* overhead lamp + felt weave */
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,240,190,.28), transparent 55%), repeating-linear-gradient(45deg, rgba(0,0,0,.05) 0 2px, transparent 2px 4px); }
+  .felt .print { position: absolute; left: 0; right: 0; bottom: 3%; text-align: center; font: 800 clamp(12px, 1.6vw, 18px) Cinzel, Georgia, serif; letter-spacing: .4em; color: rgba(227,193,100,.55); }
+  .stack { position: absolute; width: 7%; aspect-ratio: 1; border-radius: 50%; /* shadows = the chips underneath */
+    background: radial-gradient(circle, var(--c) 0 50%, #fff 50% 55%, var(--c) 55% 68%, transparent 69%), repeating-conic-gradient(#fff 0 15deg, var(--c) 15deg 45deg);
+    box-shadow: 0 4px 0 var(--d), 0 8px 0 var(--c), 0 12px 0 var(--d), 0 16px 0 var(--c), 0 20px 0 var(--d), 0 26px 10px #0008; }
+  .wheel { position: relative; width: min(100%, 620px); aspect-ratio: 1; margin: auto; border-radius: 50%;
+    background: radial-gradient(circle, #2b1408 60%, #7a3d17 66%, #3d1e0b 70%);
+    box-shadow: 0 0 0 5px var(--gold), 0 0 0 9px #3d1e0b, 0 0 0 11px var(--gold2), 0 30px 60px rgba(0,0,0,.8), 0 0 80px rgba(255,220,130,.25); }
+  .track { position: absolute; inset: 3.5%; border-radius: 50%; background: radial-gradient(circle, #1b0f07 70%, #4a2a14 88%, #20110a 100%); box-shadow: inset 0 0 30px #000, inset 0 0 0 2px var(--gold2); }
+  .diamonds i { position: absolute; inset: 0; transform: rotate(calc(var(--i) * 45deg + 22.5deg)); }
+  .diamonds i::after { content: ""; position: absolute; left: 48.4%; top: 3.6%; width: 3.2%; height: 5.4%; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    background: linear-gradient(135deg, #fff3c4, var(--gold) 50%, var(--gold2)); }
+  #rotor { position: absolute; inset: 11%; border-radius: 50%; transition: transform 6s cubic-bezier(.12,.75,.12,1); box-shadow: 0 0 0 4px var(--gold), 0 0 30px #000; }
+  #wheel { width: 100%; height: 100%; display: block; border-radius: 50%; }
+  .turret { position: absolute; inset: 38%; border-radius: 50%; }
+  .turret::before, .turret::after { content: ""; position: absolute; left: 44%; right: 44%; top: -32%; bottom: -32%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--gold2), #fff3c4, var(--gold2)); box-shadow: 0 3px 6px #000a; }
+  .turret::after { transform: rotate(90deg); }
+  .turret b { position: absolute; inset: 0; z-index: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff8dc, var(--gold) 40%, #7a5a12); box-shadow: 0 6px 16px #000c; }
+  .turret b::after { content: "♦"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--red); font-size: clamp(16px, 3vw, 30px); }
+  #orbit { position: absolute; inset: 0; transition: transform 6s cubic-bezier(.2,.6,.15,1); pointer-events: none; }
+  .ball { position: absolute; left: 50%; top: 5.8%; width: 3.4%; aspect-ratio: 1; margin-left: -1.7%; border-radius: 50%; transition: top .4s;
+    background: radial-gradient(circle at 35% 30%, #fff, #dcdcdc 45%, #8a8a8a); box-shadow: 0 2px 4px #000; }
+  .ball.land { top: 11.6%; transition: top .8s cubic-bezier(.5,0,.4,1.6) 5s; }
+  .marker { position: absolute; top: -4.5%; left: 50%; width: 5%; aspect-ratio: .8; margin-left: -2.5%; z-index: 2;
+    background: linear-gradient(180deg, #fff3c4, var(--gold) 50%, var(--gold2)); clip-path: polygon(0 0, 100% 0, 50% 100%); filter: drop-shadow(0 3px 3px #000); }
+  .burst { position: absolute; left: 50%; top: 50%; z-index: 3; animation: burst 1.4s cubic-bezier(.2,.7,.3,1) forwards; pointer-events: none; }
+  @keyframes burst { from { transform: translate(-50%,-50%) scale(.3); opacity: 1; } to { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(540deg); opacity: 0; } }
+  #pick { padding: 22px; text-align: center; display: grid; gap: 14px; justify-items: center; position: relative;
+    background: linear-gradient(180deg, rgba(40,6,14,.85), rgba(10,3,6,.85)); border: 2px solid var(--gold); }
+  #pick::before { content: "♠ ♥ DEALER ♦ ♣"; font: 800 12px Cinzel, Georgia, serif; letter-spacing: .3em; color: var(--gold2); }
+  #pick img { width: 100%; border-radius: 10px; border: 2px solid var(--gold); box-shadow: 0 0 30px rgba(227,193,100,.4); }
+  #pick .name { font: 800 24px Cinzel, Georgia, serif; color: var(--gold); text-shadow: 0 0 18px rgba(227,193,100,.5); }
+  #pick .win { font: 800 34px Cinzel, Georgia, serif; letter-spacing: .1em; color: #fff; animation: winpulse .6s ease-in-out 4 alternate; }
+  @keyframes winpulse { to { color: var(--gold); transform: scale(1.12); } }
+  /* house rules */
+  .rules { padding: 18px 20px; margin: 0 26px; }
+  #rules { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rule { font: 600 13px Inter, sans-serif; color: var(--ink); cursor: pointer; padding: 7px 12px; border-radius: 99px; border: 1px solid var(--line); background: rgba(0,0,0,.4); }
+  .rule[aria-pressed="false"] { color: #8d846b; text-decoration: line-through; border-color: rgba(179,18,27,.6); background: rgba(80,0,8,.4); }
+  .rule[aria-pressed="false"]::before { content: "🚫 "; }
+  .rule:hover { border-color: var(--gold); }
+
+  /* clickable game cards + details dialog */
+  .game { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .game:hover, .game:focus-visible { transform: translateY(-4px); box-shadow: 0 0 0 2px var(--gold), 0 14px 30px #000a; outline: none; }
+  dialog { width: min(900px, calc(100vw - 32px)); max-height: 88vh; padding: 0; color: var(--ink); background: #160509; border: 2px solid var(--gold); border-radius: 18px; box-shadow: 0 30px 80px #000; }
+  dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+  .dhead { position: relative; }
+  .dhead img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+  .dhead::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 40%, #160509); }
+  .dhead h3 { position: absolute; left: 24px; right: 24px; bottom: 10px; z-index: 1; margin: 0; font: 800 clamp(22px, 4vw, 36px) Cinzel, Georgia, serif; color: var(--gold); text-shadow: 0 3px 8px #000; }
+  .dclose { position: absolute; top: 12px; right: 12px; z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); background: #000a; color: #fff; font-size: 20px; cursor: pointer; }
+  .dbody { padding: 18px 24px 24px; display: grid; gap: 18px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .tiles div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.35); }
+  .tiles b { display: block; font: 800 20px Cinzel, Georgia, serif; color: var(--gold); overflow-wrap: anywhere; }
+  .tiles span { color: var(--dim); font-size: 12px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .filters .rule[aria-pressed="false"] { text-decoration: none; color: var(--dim); border-color: var(--line); background: rgba(0,0,0,.4); }
+  .filters .rule[aria-pressed="false"]::before { content: none; }
+  .filters .rule[aria-pressed="true"] { background: var(--gold); color: #1d1404; }
+  .ach { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(227,193,100,.15); }
+  .ach img { width: 48px; height: 48px; border-radius: 8px; border: 2px solid var(--gold); }
+  .ach.locked img { border-color: #444; filter: grayscale(1) brightness(.7); }
+  .ach.locked b { color: var(--dim); }
+  .ach small { display: block; color: var(--dim); }
+  .ach .meta { text-align: right; font-size: 12px; color: var(--dim); white-space: nowrap; }
+  .pill { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 99px; font-weight: 700; font-size: 11px; background: #333; color: #ddd; }
+  .pill.rare { background: var(--red); color: #fff; } .pill.ultra { background: linear-gradient(180deg, #ffe48f, var(--gold2)); color: #1d1404; }
+
+  /* higher or lower */
+  #hol { padding: 20px; display: grid; grid-template-columns: auto auto 1fr; gap: 24px; align-items: center; margin-bottom: 16px; }
+  .pcard { width: 200px; aspect-ratio: 5/7; perspective: 900px; }
+  .pcard .in { position: relative; width: 100%; height: 100%; transition: transform .6s; transform-style: preserve-3d; }
+  .pcard.down .in { transform: rotateY(180deg); }
+  .face, .back { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; box-shadow: 0 10px 24px #000a; }
+  .face { background: #fbf7ea; color: #111; padding: 30px 12px 12px; display: grid; align-content: center; gap: 8px; text-align: center; border: 1px solid #d8cfb2; }
+  .face.redsuit { color: #c4141e; }
+  .face img { width: 100%; aspect-ratio: 460/215; object-fit: cover; border-radius: 6px; }
+  .face b { font: 800 14px Cinzel, Georgia, serif; color: #111; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .face .hrs { font: 800 22px Cinzel, Georgia, serif; }
+  .corner { position: absolute; font: 800 18px/1 Cinzel, Georgia, serif; text-align: center; }
+  .corner.tl { top: 8px; left: 9px; } .corner.br { bottom: 8px; right: 9px; transform: rotate(180deg); }
+  .back { transform: rotateY(180deg); border: 6px solid #fbf7ea;
+    background: repeating-linear-gradient(45deg, var(--cb1) 0 8px, var(--cb2) 8px 16px); display: grid; place-items: center; font-size: 56px; color: #fbf7ea; }
+  .holside { display: grid; gap: 12px; justify-items: start; }
+  .holside .q { font: 800 20px Cinzel, Georgia, serif; color: var(--gold); margin: 0; }
+  .holside .row2 { display: flex; gap: 10px; flex-wrap: wrap; }
+  .streak { display: flex; gap: 18px; color: var(--dim); } .streak b { font: 800 26px Cinzel, Georgia, serif; color: var(--gold); display: block; }
+  #holmsg { min-height: 1.4em; font-weight: 800; margin: 0; }
+  @media (max-width: 760px) { #hol { grid-template-columns: 1fr 1fr; } .pcard { width: 100%; } .holside { grid-column: 1 / -1; } }
+  /* floor nav + bankroll */
+  .floor { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .floor .btn { padding: 10px 16px; font-size: 14px; }
+  .bankpill { font: 800 18px Cinzel, Georgia, serif; color: var(--gold); padding: 8px 16px; border-radius: 99px; background: rgba(0,0,0,.55); border: 1px solid var(--line); }
+  .hint { color: var(--dim); text-align: center; max-width: 760px; margin: 0 auto; }
+
+  /* jukebox */
+  #now.jukebox { display: grid; gap: 18px; border: 3px solid transparent; border-radius: 28px 28px 16px 16px;
+    background: linear-gradient(rgba(10,3,6,.8), rgba(10,3,6,.8)) padding-box, linear-gradient(90deg, var(--jk1), var(--jk2), var(--jk3), var(--jk1), var(--jk2), var(--jk3), var(--jk1)) 0 0/300% 100% border-box; }
+  #now.playing.jukebox { animation: neon 6s linear infinite; } /* only the neon frame cycles; the art keeps its real colours */
+  @keyframes neon { to { background-position: 0 0, 100% 0; } }
+  .jrow { display: flex; gap: 32px; align-items: center; }
+  .ticker { overflow: hidden; white-space: nowrap; background: #050102; border: 2px solid var(--gold2); border-radius: 10px; padding: 6px 0;
+    font: 800 16px/1.2 Cinzel, Georgia, serif; letter-spacing: .12em; color: #ffe48f; text-shadow: 0 0 8px #ff9f1c; }
+  .ticker span { display: inline-block; padding-left: 100%; animation: marquee 22s linear infinite; }
+  @keyframes marquee { to { transform: translateX(-100%); } }
+  .playing #art { outline: 6px dotted var(--bulb); outline-offset: 7px; animation: lights .7s steps(2) infinite; }
+  @keyframes lights { 50% { outline-color: #ff4fd8; } }
+  .spectrum { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
+  .spectrum i { flex: 1; height: 12%; border-radius: 3px 3px 0 0; background: linear-gradient(to top, var(--red), #ff9f1c 60%, #ffe48f); opacity: .85; }
+  .playing .spectrum i { animation: band var(--d) ease-in-out infinite alternate; }
+  @keyframes band { from { height: 10%; } to { height: var(--h); } }
+  .rotation { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .rotation li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: linear-gradient(180deg, #2a0a14, #12030a); border: 1px solid var(--line); }
+  .rotation .code { font: 800 14px Cinzel, Georgia, serif; color: #1d1404; background: linear-gradient(180deg, #ffe48f, var(--gold2)); border-radius: 6px; padding: 4px 7px; }
+  .rotation b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rotation small { color: var(--dim); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rotation .plays { font: 800 15px Cinzel, Georgia, serif; color: var(--gold); }
+  .rotation li:first-child { border-color: var(--gold); box-shadow: 0 0 18px rgba(227,193,100,.35); }
+
+  /* app chip towers */
+  .towers { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px; padding: 20px 18px 16px; align-items: end; }
+  .tower { display: grid; justify-items: center; gap: 6px; text-align: center; min-width: 0; }
+  .tower .pile { height: 210px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+  .tower .pile img, .tower .pile .ph { width: 34px; height: 34px; border-radius: 8px; filter: drop-shadow(0 3px 4px #000); }
+  .tower .stack { width: 58px; position: relative; border-radius: 0 0 50% 50% / 0 0 10px 10px; min-height: 12px;
+    background: repeating-linear-gradient(to top, var(--c) 0 9px, rgba(0,0,0,.55) 9px 11px); box-shadow: inset 6px 0 0 rgba(255,255,255,.25), inset -6px 0 0 rgba(0,0,0,.25), 0 8px 14px #000a; }
+  .tower .stack::before { content: ""; position: absolute; left: 0; right: 0; top: -9px; height: 18px; border-radius: 50%; background: radial-gradient(circle, #fff8 0 25%, var(--c) 26% 60%, #fff8 61% 66%, var(--c) 67%); }
+  .tower .t-val { font: 800 14px Cinzel, Georgia, serif; color: var(--gold); }
+  .tower .t-name { font-size: 13px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tower .t-tier { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--c); }
+
+  /* slots */
+  .slotm { max-width: 900px; margin: 0 auto; padding: 26px; border-radius: 40px 40px 24px 24px; display: grid; gap: 20px;
+    background: linear-gradient(180deg, #c4141e, #6d070d); border: 6px solid var(--gold); box-shadow: 0 0 0 6px #1a0610, 0 30px 70px #000c, inset 0 0 60px rgba(0,0,0,.45); }
+  .slot-crown { text-align: center; font: 800 clamp(20px, 4vw, 34px) Cinzel, Georgia, serif; color: #ffe48f; text-shadow: 0 3px 0 #3b0a1e, 0 0 20px #ff9f1c; }
+  .slot-crown small { display: block; font: 600 14px Inter, sans-serif; color: #ffd9d9; text-shadow: none; letter-spacing: 0; }
+  .reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .reelwin { position: relative; height: 170px; overflow: hidden; border-radius: 14px; background: #fbf7ea; border: 4px solid #1a0610;
+    box-shadow: inset 0 18px 18px -8px rgba(0,0,0,.45), inset 0 -18px 18px -8px rgba(0,0,0,.45); }
+  .reelwin::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: rgba(196,20,30,.5); }
+  .reelwin .lbl { position: absolute; top: 6px; left: 8px; z-index: 1; font: 800 11px Inter, sans-serif; letter-spacing: .15em; text-transform: uppercase; color: #8e0d15; background: #fbf7eacc; padding: 1px 6px; border-radius: 6px; }
+  .strip { will-change: transform; }
+  .sitem { height: 170px; display: grid; place-items: center; align-content: center; gap: 6px; padding: 22px 10px 10px; text-align: center; color: #1a0610; position: relative; }
+  .sitem img { width: 100%; max-height: 80px; object-fit: cover; border-radius: 8px; }
+  .sitem b { font: 800 15px/1.2 Inter, sans-serif; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sitem .big { font-size: 40px; line-height: 1; }
+  .sitem.gold { background: radial-gradient(circle, #fff6c9, #f2c94c); }
+  .sitem.gold::after { content: "7"; position: absolute; top: 6px; right: 8px; font: 900 26px Cinzel, Georgia, serif; color: #c4141e; text-shadow: 0 2px 0 #fff; }
+  .slotctl { display: grid; justify-items: center; gap: 8px; }
+  #pull { font-size: 20px; padding: 16px 40px; }
+  #slotmsg { font: 800 20px Cinzel, Georgia, serif; color: #ffe48f; margin: 0; min-height: 1.3em; text-align: center; }
+  #ticket:empty { display: none; }
+  .ticket { display: grid; grid-template-columns: 160px 1fr auto; gap: 18px; align-items: center; padding: 16px 20px; color: #1a0610; border-radius: 12px;
+    background: #fbf7ea; border: 3px dashed #c4141e; box-shadow: 0 10px 24px #0008; }
+  .ticket img { width: 100%; border-radius: 8px; }
+  .ticket h3 { margin: 0 0 4px; font: 800 13px Inter, sans-serif; letter-spacing: .2em; color: #c4141e; }
+  .ticket p { margin: 0; font: 800 18px Cinzel, Georgia, serif; }
+  .slotm .hint { color: #ffd9d9; }
+
+  /* card tables */
+  .cardtable { display: grid; gap: 18px; padding: 30px 28px 54px; margin: 26px; }
+  .hand h3 { margin: 0 0 10px; font: 800 18px Cinzel, Georgia, serif; color: var(--gold); text-shadow: 0 2px 4px #000; }
+  .hand h3 span { color: #fff; margin-left: 8px; }
+  .cards { display: flex; flex-wrap: wrap; gap: 10px; min-height: 160px; }
+  .mcard { position: relative; width: 112px; aspect-ratio: 5/7; border-radius: 10px; background: #fbf7ea; color: #111; box-shadow: 0 6px 14px #000a; display: grid; align-content: center; justify-items: center; gap: 4px; padding: 26px 8px 22px; }
+  .mcard.fresh { animation: dealin .35s ease-out; }
+  .mcard.redsuit { color: #c4141e; }
+  .mcard img { width: 100%; aspect-ratio: 460/215; object-fit: cover; border-radius: 4px; }
+  .mcard small { font: 700 10px/1.15 Inter, sans-serif; color: #333; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mcard .pip { font-size: 44px; line-height: 1; }
+  .mcard .corner { font-size: 15px; }
+  .mcard.back { background: repeating-linear-gradient(45deg, var(--cb1) 0 7px, var(--cb2) 7px 14px); border: 5px solid #fbf7ea; color: #fbf7ea; font-size: 40px; place-items: center; }
+  @keyframes dealin { from { transform: translateY(-40px) rotate(-10deg); opacity: 0; } }
+  .tablemsg { margin: 0; text-align: center; font: 800 22px Cinzel, Georgia, serif; color: #fff3c4; text-shadow: 0 2px 6px #000; min-height: 1.3em; }
+  .tablemsg a { color: #ffe48f; }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .bets { display: flex; gap: 8px; margin-right: 8px; }
+  .chipbtn { width: 54px; height: 54px; border-radius: 50%; border: 0; cursor: pointer; font: 800 14px Inter, sans-serif; color: #fff;
+    background: radial-gradient(circle, var(--c) 0 50%, #fff 50% 55%, var(--c) 55% 68%, transparent 69%), repeating-conic-gradient(#fff 0 15deg, var(--c) 15deg 45deg); box-shadow: 0 4px 0 #0008; }
+  .chipbtn[aria-pressed="true"] { transform: translateY(-5px); box-shadow: 0 0 0 3px var(--gold), 0 8px 12px #000a; }
+  .chipbtn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .rivals { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: start; }
+  .side { display: grid; gap: 10px; justify-items: center; text-align: center; padding: 14px; border-radius: 16px; border: 2px solid transparent; transition: border-color .3s, box-shadow .3s; }
+  .side.won { border-color: var(--gold); box-shadow: 0 0 30px rgba(227,193,100,.5); }
+  .side > img { width: 100%; max-width: 300px; border-radius: 10px; border: 2px solid var(--gold); }
+  .side b { font: 800 18px Cinzel, Georgia, serif; color: #fff3c4; }
+  .side .score { font: 800 34px Cinzel, Georgia, serif; color: var(--gold); }
+  .side .cards { justify-content: center; min-height: 140px; }
+  .side .mcard { width: 84px; padding: 20px 6px 18px; }
+  .vs { align-self: center; font: 800 40px Cinzel, Georgia, serif; color: var(--gold); text-shadow: 0 0 20px #ff9f1c; }
+  /* games vs everything else + PC calendar heatmap */
+  .splitcard { padding: 14px 18px; margin-bottom: 12px; display: grid; gap: 8px; }
+  .splitbar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,.4); }
+  .splitbar i { display: block; height: 100%; }
+  .splitlabels { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-weight: 700; font-size: 13px; }
+  .tower .gtag { font-size: 11px; font-weight: 800; color: #7fe7ff; }
+  .heatcard { padding: 16px 18px; display: grid; gap: 12px; overflow-x: auto; }
+  .heat { display: grid; grid-template-rows: repeat(7, 16px); grid-auto-flow: column; grid-auto-columns: 16px; gap: 4px; }
+  .heat i { border-radius: 4px; background: rgba(255,255,255,.06); }
+  .heatlegend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--dim); }
+  .heatlegend b { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  /* price watch */
+  .watchcard { padding: 16px 18px; display: grid; gap: 12px; }
+  #watchSearch { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.45); color: var(--ink); font: 600 15px Inter, sans-serif; }
+  #watchSearch:focus-visible { outline: 2px solid var(--gold); }
+  .wrow { display: grid; grid-template-columns: 120px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(227,193,100,.15); }
+  .wrow img { width: 120px; border-radius: 6px; }
+  .wrow b { display: block; } .wrow small { color: var(--dim); }
+  .wrow .act { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .wrow input { width: 90px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.4); color: var(--ink); font: 700 14px Inter, sans-serif; }
+  .wrow.hit { background: linear-gradient(90deg, rgba(22,163,74,.25), transparent); }
+  .wrow .btn { padding: 8px 14px; font-size: 13px; }
+
+  /* spotlight badges */
+  .wishtag { color: #1d1404; background: #ffe48f; padding: 1px 8px; border-radius: 99px; font-weight: 800; }
+  .lowtag { color: #fff; background: #c2410c; padding: 1px 8px; border-radius: 99px; font-weight: 800; }
+  .freebanner { position: absolute; left: 0; right: 0; top: 38%; text-align: center; font: 900 44px Cinzel, Georgia, serif; color: #fff; background: rgba(22,163,74,.85); transform: rotate(-6deg); text-shadow: 0 3px 0 #064e2a; letter-spacing: .2em; }
+  .lineup button .star { position: absolute; top: 3px; left: 4px; font-size: 14px; }
+
+  /* song bingo */
+  .bingocard { max-width: 760px; margin: 0 auto; padding: 22px; border-radius: 20px; display: grid; gap: 12px; background: linear-gradient(180deg, #1f3fbf, #0d1f66); border: 5px solid var(--gold); box-shadow: 0 30px 70px #000c; }
+  .bingohead, .bingogrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .bingohead span { text-align: center; font: 900 clamp(26px, 5vw, 44px) Cinzel, Georgia, serif; color: #ffe48f; text-shadow: 0 3px 0 #3b0a1e; }
+  .bsq { position: relative; aspect-ratio: 1; border-radius: 10px; background: #fbf7ea; color: #1a0610; display: grid; place-items: center; text-align: center; padding: 6px; font: 700 clamp(10px, 1.6vw, 14px)/1.2 Inter, sans-serif; overflow: hidden; }
+  .bsq.artist { font-family: Cinzel, Georgia, serif; font-weight: 800; }
+  .bsq.marked::after { content: ""; position: absolute; inset: 14%; border-radius: 50%; opacity: .82;
+    background: radial-gradient(circle, var(--chipc) 0 50%, #fff 50% 55%, var(--chipc) 55% 68%, transparent 69%), repeating-conic-gradient(#fff 0 15deg, var(--chipc) 15deg 45deg); }
+  .bsq.free { background: #ffe48f; font: 900 18px Cinzel, Georgia, serif; }
+  .bsq.won { box-shadow: 0 0 0 3px #ffe48f, 0 0 18px #ffe48f; }
+  .bingocard .hint { color: #dbe4ff; }
+  .bingocard .sc-msg { color: #ffe48f; }
+
+  /* trophy room */
+  .contract { padding: 18px; display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: center; border: 2px solid var(--gold); background: linear-gradient(180deg, rgba(60,40,8,.85), rgba(15,6,4,.9)); }
+  .contract > img { width: 100%; border-radius: 10px; border: 2px solid var(--gold); }
+  .contract .terms { display: grid; gap: 8px; }
+  .contract .ach { border: 0; padding: 0; }
+  .contract .status { font: 800 18px Cinzel, Georgia, serif; color: var(--gold); }
+  .contract .controls { justify-content: flex-start; }
+  .chase { display: grid; gap: 10px; }
+  .chaserow { display: grid; grid-template-columns: 160px 1fr auto; gap: 16px; align-items: center; padding: 12px 16px; }
+  .chaserow > img { width: 160px; border-radius: 8px; }
+  .chaserow .icons { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .chaserow .icons span { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--dim); background: rgba(0,0,0,.35); padding: 3px 8px 3px 3px; border-radius: 8px; }
+  .chaserow .icons img { width: 28px; height: 28px; border-radius: 5px; filter: grayscale(1); }
+  .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .plaque { padding: 14px 10px 12px; text-align: center; border-radius: 12px; display: grid; gap: 6px; justify-items: center;
+    background: linear-gradient(180deg, #2b1a06, #120903); border: 3px solid var(--gold); box-shadow: inset 0 0 0 3px #5c3d0e, 0 10px 20px #000a; }
+  .plaque img { width: 64px; height: 64px; border-radius: 8px; border: 3px solid #ffe48f; box-shadow: 0 0 16px rgba(255,228,143,.5); }
+  .plaque b { font: 800 14px/1.2 Cinzel, Georgia, serif; color: #ffe48f; }
+  .plaque small { color: var(--dim); font-size: 11px; }
+  .plaque .rar { font: 900 16px Cinzel, Georgia, serif; color: #fff; }
+
+  /* perk shop + settings */
+  .shopcat h2 { margin-top: 18px; }
+  .ytsearch { display: flex; gap: 8px; flex: 1 1 260px; margin-left: auto; }
+  .ytsearch input { flex: 1; min-width: 0; padding: 10px 14px; border-radius: 99px; border: 1px solid var(--line); background: rgba(0,0,0,.45); color: var(--ink); font: 600 15px Inter, sans-serif; }
+  .ytsearch input:focus-visible { outline: 2px solid var(--gold); }
+  #theater [hidden] { display: none; } /* .btn and .ytsetup set display, which would beat the hidden attribute */
+  .screen { padding: 12px; margin-bottom: 18px; }
+  #ytScreen { aspect-ratio: 16 / 9; display: grid; place-items: center; background: #000; border-radius: 10px; overflow: hidden; }
+  #ytScreen iframe { width: 100%; height: 100%; border: 0; }
+  .ytsetup { padding: 18px 22px; display: grid; gap: 10px; margin-bottom: 18px; } .ytsetup ol { margin: 0; padding-left: 22px; line-height: 1.7; } .ytsetup a { color: var(--gold); }
+  .ytkeys { display: grid; gap: 8px; } .ytkeys input { width: min(100%, 520px); }
+  .ytgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .ytcard { padding: 0; overflow: hidden; text-align: left; cursor: pointer; color: inherit; font: inherit; display: grid; }
+  .ytcard img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; } .ytcard b, .ytcard small { padding: 0 10px; } .ytcard b { padding-top: 8px; } .ytcard small { color: var(--dim); padding-bottom: 10px; }
+  .ytcard:hover, .ytcard:focus-visible { border-color: var(--gold); }
+  .shopitems { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+  .perk { padding: 14px; display: grid; gap: 8px; justify-items: center; text-align: center; }
+  .perk .swatch { width: 100%; height: 70px; border-radius: 10px; border: 2px solid rgba(255,255,255,.2); }
+  .perk.equipped { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 20px rgba(227,193,100,.35); }
+  .perk .btn { padding: 8px 16px; font-size: 13px; }
+  .settingsform { padding: 20px 24px; display: grid; gap: 16px; max-width: 720px; }
+  .settingsform fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; gap: 10px; }
+  .settingsform legend { font: 800 14px Cinzel, Georgia, serif; color: var(--gold); padding: 0 6px; }
+  .settingsform label { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .settingsform input[type=number], .settingsform input[name=currency] { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.4); color: var(--ink); font: 700 14px Inter, sans-serif; width: 90px; }
+  .settingsform .controls { justify-content: flex-start; }
+  #settingsMsg { color: var(--gold); font-weight: 700; }
+  @media (max-width: 760px) { .contract, .chaserow, .wrow { grid-template-columns: 1fr; } .chaserow > img, .wrow img { width: 100%; } }
+
+  /* sale spotlight */
+  .spotlight { padding: 0 20px 18px; overflow: hidden; position: relative; }
+  .stage { position: relative; display: grid; grid-template-columns: minmax(0, 1.4fr) 1fr; gap: 26px; align-items: center; padding: 34px 6px 10px; min-height: 280px; }
+  .stage::before { content: ""; position: absolute; left: 10%; top: -40px; width: 50%; height: 140%; pointer-events: none; /* the spotlight beam on the headliner */
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,240,190,.32), transparent 62%), conic-gradient(from 160deg at 50% 0, transparent, rgba(255,240,190,.18) 20deg, transparent 40deg); }
+  .stage a.hero { position: relative; display: block; border-radius: 14px; overflow: hidden; border: 3px solid var(--gold); box-shadow: 0 0 40px rgba(255,230,160,.35), 0 20px 40px #000c; animation: onstage .6s ease-out; }
+  .stage a.hero img { width: 100%; display: block; aspect-ratio: 460/215; object-fit: cover; }
+  .billing .meta { color: var(--dim); font-weight: 600; }
+  .newtag { color: #1d1404; background: linear-gradient(180deg, #ffe48f, var(--gold2)); padding: 1px 8px; border-radius: 99px; font-weight: 800; }
+  .dealsinfo { margin: -6px 0 12px; text-align: center; font-size: 12px; color: var(--dim); }
+  .billing .desc { margin: 0; color: #e9e1c6; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .qctl { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 6px 0 14px; flex-wrap: wrap; }
+  .pricefilter { justify-content: center; margin-top: 12px; }
+  .pricefilter small { opacity: .7; margin-left: 4px; }
+  #qPos { font: 800 18px Cinzel, Georgia, serif; color: var(--gold); min-width: 110px; text-align: center; font-variant-numeric: tabular-nums; }
+  .upnext { display: block; font: 800 11px Inter, sans-serif; letter-spacing: .25em; text-transform: uppercase; color: var(--gold2); margin-bottom: 4px; }
+  .stage a.hero:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+  @keyframes onstage { from { opacity: 0; transform: scale(.96); filter: brightness(.3); } }
+  .pct { position: absolute; top: 10px; right: 10px; width: 74px; height: 74px; border-radius: 50%; display: grid; place-items: center; font: 900 20px Cinzel, Georgia, serif; color: #fff;
+    background: radial-gradient(circle, var(--red) 0 54%, #fff 54% 58%, var(--red) 58% 68%, transparent 69%), repeating-conic-gradient(#fff 0 15deg, var(--red) 15deg 45deg); box-shadow: 0 6px 14px #000a; transform: rotate(-12deg); }
+  .billing { position: relative; display: grid; gap: 10px; animation: onstage .6s ease-out; }
+  .billing small { font: 800 12px Inter, sans-serif; letter-spacing: .25em; color: var(--gold2); text-transform: uppercase; }
+  .billing h3 { margin: 0; font: 800 clamp(22px, 3vw, 32px)/1.15 Cinzel, Georgia, serif; color: #fff3c4; }
+  .price { display: flex; gap: 12px; align-items: baseline; }
+  .price s { color: var(--dim); font-size: 18px; } .price b { font: 900 34px Cinzel, Georgia, serif; color: var(--gold); text-shadow: 0 0 18px rgba(227,193,100,.5); }
+  .ends { color: #ff9f9f; font-weight: 700; }
+  .lineup { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 4px; }
+  .lineup button { flex: none; width: 150px; padding: 0; border-radius: 8px; overflow: hidden; border: 2px solid transparent; background: #000; cursor: pointer; position: relative; opacity: .65; transition: opacity .2s; }
+  .lineup button[aria-pressed="true"], .lineup button:hover { opacity: 1; border-color: var(--gold); }
+  .lineup button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .lineup img { width: 100%; aspect-ratio: 460/215; object-fit: cover; display: block; }
+  .lineup span { position: absolute; bottom: 4px; right: 4px; font: 800 12px Inter, sans-serif; background: var(--red); color: #fff; padding: 1px 6px; border-radius: 6px; }
+
+  /* backlog scratchers */
+  .scratcher { max-width: 980px; margin: 0 auto; padding: 24px; display: grid; gap: 18px; border-radius: 20px; color: #2a1406;
+    background: repeating-linear-gradient(135deg, #ffe48f 0 18px, #f2c94c 18px 36px); border: 5px solid #1a0610; box-shadow: 0 0 0 6px var(--gold2), 0 30px 70px #000c; }
+  .sc-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 3px dashed #1a0610; padding-bottom: 12px; }
+  .sc-head b { font: 900 clamp(22px, 4vw, 36px) Cinzel, Georgia, serif; color: #8e0d15; text-shadow: 0 2px 0 #fff6; }
+  .sc-head span { font-weight: 800; }
+  .sc-panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; min-height: 260px; }
+  .sc-empty { grid-column: 1 / -1; align-self: center; text-align: center; font: 800 18px Cinzel, Georgia, serif; }
+  .panel { position: relative; border-radius: 14px; overflow: hidden; background: #fbf7ea; border: 3px solid #1a0610; display: grid; align-content: start; gap: 8px; padding: 10px 10px 14px; text-align: center; min-height: 260px; }
+  .panel img { width: 100%; aspect-ratio: 460/215; object-fit: cover; border-radius: 8px; }
+  .panel b { font: 800 16px/1.2 Cinzel, Georgia, serif; }
+  .panel .played { font-size: 13px; font-weight: 700; color: #6d4a1e; }
+  .panel.fresh-find { box-shadow: 0 0 0 4px #16a34a, 0 0 24px #16a34a; }
+  .panel .tag { justify-self: center; font: 800 12px Inter, sans-serif; padding: 2px 10px; border-radius: 99px; background: #16a34a; color: #fff; }
+  .panel .btn { justify-self: center; padding: 8px 16px; font-size: 13px; }
+  .panel canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; border-radius: 11px; }
+  .panel canvas:focus-visible { outline: 4px solid #8e0d15; outline-offset: -4px; }
+  .sc-msg { margin: 0; text-align: center; font: 900 22px Cinzel, Georgia, serif; color: #8e0d15; min-height: 1.3em; }
+  .sc-rules { margin: 0; text-align: center; font-weight: 600; }
+  @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } .sc-panels { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .reels { gap: 6px; } .sitem b { font-size: 12px; } .ticket { grid-template-columns: 1fr; } .rivals { grid-template-columns: 1fr; } .mcard { width: 84px; } }
+  @media (max-width: 900px) { #table { grid-template-columns: 1fr; } }
+  @media (max-width: 720px) {
+    #now { padding: 20px; } .jrow { flex-direction: column; align-items: stretch; }
+    .disc { width: 180px; height: 180px; margin: auto; } #art { width: 180px; height: 180px; } .chip { width: 160px; height: 160px; left: 50px; }
+    .info { padding-left: 0; } .felt { border-radius: 28px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; } #rotor, #orbit { transition-duration: 1s; } .ball.land { transition-delay: 1s; }
+  }
+</style>
+</head>
+<body>
+<video id="bgvid" autoplay muted loop playsinline src="/bg.mp4" onerror="this.remove()"></video>
+<div id="scene" aria-hidden="true"></div>
+<div class="beam l"></div><div class="beam r"></div>
+<div id="shade"></div>
+
+<main id="lobby">
+  <header>
+    <div><h1>♠ Pulse Casino ♦</h1><div class="bulbs"></div></div>
+    <nav class="floor" aria-label="Casino floor">
+      <span class="bankpill" title="Your chips, shared by every table">🪙 <b class="bank">0</b></span>
+      <a class="btn red" href="#roulette">🎡 Roulette</a>
+      <a class="btn red" href="#slots">🎰 Slots</a>
+      <a class="btn red" href="#blackjack">🃏 Blackjack</a>
+      <a class="btn red" href="#baccarat">⚔ Baccarat</a>
+      <a class="btn red" href="#scratch">🎟 Scratchers</a>
+      <a class="btn red" href="#bingo">🎱 Bingo</a>
+      <a class="btn red" href="#theater">🎬 Theater</a>
+      <a class="btn" href="#trophies">🏆 Trophies</a>
+      <a class="btn" href="#shop">🛍 Perks</a>
+      <a class="btn" href="#settings" aria-label="Settings">⚙</a>
+    </nav>
+  </header>
+
+  <section id="now" class="card jukebox">
+    <div class="ticker" aria-hidden="true"><span id="marquee">★ PULSE JUKEBOX ★ press play on something ★</span></div>
+    <div class="jrow">
+    <div class="disc"><div class="chip"></div><img id="art" alt="Album art"></div>
+    <div class="info" aria-live="polite">
+      <h2><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span id="state">Nothing playing</span></h2>
+      <p id="title">—</p>
+      <p id="artist"></p>
+      <div id="album"></div>
+      <div class="bar" role="progressbar" aria-label="Track progress"><i id="prog"></i></div>
+      <div class="times"><span id="pos">0:00</span><span id="source"></span><span id="dur">0:00</span></div>
+    </div>
+    </div>
+    <div class="spectrum" id="spectrum" aria-hidden="true"></div>
+    <div>
+      <h2>Heavy rotation · your most played songs</h2>
+      <ol class="rotation" id="rotation"></ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>🔦 Spotlight · on sale now</h2>
+    <div class="card spotlight">
+      <div class="stage" id="stage"><p class="empty">Bringing out tonight's headliners…</p></div>
+      <div class="filters pricefilter" id="priceFilter" role="group" aria-label="Filter deals by sale price"></div>
+      <div class="qctl">
+        <button class="btn" id="qStart" disabled title="Back to the front of the queue">⏮ Start</button>
+        <button class="btn" id="qBack" disabled>◀ Back</button>
+        <span id="qPos" aria-live="polite">0 / 0</span>
+        <button class="btn red" id="qNext" disabled>Next ▶</button>
+      </div>
+      <p class="dealsinfo" id="dealsInfo"></p>
+      <small class="upnext">Up next</small>
+      <div class="lineup" id="lineup" role="group" aria-label="Up next in the queue"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>🎯 Price watch · get a notification when a game hits your price</h2>
+    <div class="card watchcard">
+      <input type="search" id="watchSearch" placeholder="Search the Steam store for any game…" aria-label="Search the Steam store" autocomplete="off">
+      <div id="watchResults"></div>
+      <div id="watchList"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Higher or lower · your Steam hours</h2>
+    <div id="hol" class="card">
+      <div class="pcard" id="curCard"></div>
+      <div class="pcard down" id="nextCard"></div>
+      <div class="holside">
+        <p class="q" id="holq">Dealing…</p>
+        <div class="row2">
+          <button class="btn" id="hi">⬆ Higher</button>
+          <button class="btn red" id="lo">⬇ Lower</button>
+        </div>
+        <p id="holmsg" aria-live="polite"></p>
+        <div class="streak"><span><b id="streak">0</b>streak</span><span><b id="best">0</b>best</span></div>
+      </div>
+    </div>
+    <h2>High rollers · most played <span style="text-transform:none;letter-spacing:0">· click a game for full stats</span></h2>
+    <div class="totals" id="totals"></div>
+    <div id="games"></div>
+  </section>
+
+  <section>
+    <h2>VIP lounge · most used apps</h2>
+    <div class="card splitcard" id="split"></div>
+    <div id="apps" class="card towers" role="list"></div>
+  </section>
+
+  <section>
+    <h2>📅 Your PC calendar · last 12 weeks</h2>
+    <div class="card heatcard">
+      <div class="heat" id="heat" role="img" aria-label="Hours on your PC per day"></div>
+      <div class="heatlegend" id="heatLegend"></div>
+    </div>
+  </section>
+</main>
+
+<main id="roulette" hidden>
+  <header>
+    <div><h1>♥ Game Roulette ♣</h1><div class="bulbs"></div></div>
+    <a class="btn" href="#">← Lobby</a>
+  </header>
+  <div class="tables" role="group" aria-label="Choose a table">
+    <button class="btn" data-table="single" aria-pressed="true">🂡 Solo Table</button>
+    <button class="btn" data-table="multi" aria-pressed="false">👥 Multiplayer Table</button>
+  </div>
+  <div id="table">
+    <div class="felt" id="felt">
+      <span class="stack" style="--c:#b3121b;--d:#6d070d;left:4%;top:6%"></span>
+      <span class="stack" style="--c:#1f3fbf;--d:#0d1f66;left:11%;top:4%"></span>
+      <span class="stack" style="--c:#111;--d:#444;right:5%;top:7%"></span>
+      <span class="stack" style="--c:#0a7a3c;--d:#053d1e;right:7%;bottom:12%"></span>
+      <span class="stack" style="--c:#7b2ff7;--d:#3d1580;left:6%;bottom:14%"></span>
+      <div class="wheel" id="wheelBox">
+        <div class="marker"></div>
+        <div class="track"><div class="diamonds"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i></div></div>
+        <div id="rotor"><canvas id="wheel" width="1200" height="1200" aria-label="Roulette wheel of installed games"></canvas><div class="turret"><b></b></div></div>
+        <div id="orbit"><i class="ball"></i></div>
+      </div>
+      <div class="print" id="print">♦ PULSE CASINO · SOLO TABLE ♦</div>
+    </div>
+    <div id="pick" class="card" aria-live="polite">
+      <div class="name">Place your bets</div>
+      <p id="count" style="color:var(--dim);margin:0"></p>
+      <button class="btn red" id="spin">Spin the wheel</button>
+    </div>
+  </div>
+  <section class="card rules">
+    <h2>House rules · tap a game to take it off the wheel</h2>
+    <div id="rules"></div>
+  </section>
+</main>
+
+<main id="slots" hidden>
+  <header>
+    <div><h1>♦ Session Slots ♠</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <div class="slotm">
+    <div class="slot-crown">★ SESSION SLOTS ★<small>Every pull deals you a quest: a game, a twist and a time limit</small></div>
+    <div class="reels">
+      <div class="reelwin"><div class="strip" id="r0"></div><span class="lbl">Game</span></div>
+      <div class="reelwin"><div class="strip" id="r1"></div><span class="lbl">Twist</span></div>
+      <div class="reelwin"><div class="strip" id="r2"></div><span class="lbl">Time</span></div>
+    </div>
+    <div class="slotctl">
+      <button class="btn red" id="pull">🎰 Pull · 25 chips</button>
+      <p id="slotmsg" aria-live="polite"></p>
+    </div>
+    <div id="ticket"></div>
+    <p class="hint">A gold <b>7</b> can land on any reel: one pays your 25 back, two pay 5×, three hit the 50× JACKPOT.</p>
+  </div>
+</main>
+
+<main id="blackjack" hidden>
+  <header>
+    <div><h1>♠ Library Blackjack ♥</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <div class="felt cardtable">
+    <div class="hand"><h3>Dealer <span id="dTot"></span></h3><div class="cards" id="dCards"></div></div>
+    <p class="tablemsg" id="bjmsg" aria-live="polite">Place your bet and deal.</p>
+    <div class="hand"><h3>You <span id="pTot"></span></h3><div class="cards" id="pCards"></div></div>
+    <div class="controls">
+      <div class="bets" role="group" aria-label="Bet"></div>
+      <button class="btn red" id="bjDeal">Deal</button>
+      <button class="btn" id="bjHit" disabled>Hit</button>
+      <button class="btn" id="bjStand" disabled>Stand</button>
+      <button class="btn" id="bjDouble" disabled>Double</button>
+    </div>
+    <div class="print">♦ BLACKJACK PAYS 3 TO 2 · DEALER STANDS ON 17 ♦</div>
+  </div>
+  <p class="hint">Every card is one of your Steam games. Your 4 most-played are Aces, the next 12 count as 10, and the less you've played a game the lower it counts.
+    Win with your #1 game in your hand for a 50% <b>Comfort Game bonus</b>.</p>
+</main>
+
+<main id="baccarat" hidden>
+  <header>
+    <div><h1>⚔ Rivals Baccarat ⚔</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <div class="felt cardtable">
+    <div class="rivals">
+      <div class="side" id="sideP"></div>
+      <div class="vs">VS</div>
+      <div class="side" id="sideB"></div>
+    </div>
+    <p class="tablemsg" id="bacmsg" aria-live="polite"></p>
+    <div class="controls">
+      <div class="bets" role="group" aria-label="Bet"></div>
+      <button class="btn red" id="betP">Back left</button>
+      <button class="btn" id="betT">Tie · 8 to 1</button>
+      <button class="btn red" id="betB">Back right</button>
+      <button class="rule" id="rematch">🔀 New matchup</button>
+    </div>
+    <div class="print">♦ CLOSEST TO 9 WINS · TONIGHT'S GAME IS THE WINNER ♦</div>
+  </div>
+  <p class="hint">Two of your installed games face off as the two hands. Back the one you'd rather play: the winning hand is tonight's game. Cards count face value, 10s and faces count 0, and only the last digit of the total matters.</p>
+</main>
+
+<main id="scratch" hidden>
+  <header>
+    <div><h1>🎟 Backlog Scratchers 🎟</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <div class="scratcher">
+    <div class="sc-head">
+      <b>BACKLOG SCRATCHERS</b>
+      <span id="owned">Games you own but haven't installed</span>
+    </div>
+    <div class="sc-panels" id="panels">
+      <p class="sc-empty">Buy a ticket and scratch off three games you already own but haven't installed.</p>
+    </div>
+    <p class="sc-msg" id="scmsg" aria-live="polite"></p>
+    <div class="controls">
+      <button class="btn red" id="buyTicket">🎟 Buy ticket · 50 chips</button>
+      <button class="btn" id="scratchAll" disabled>Scratch all</button>
+    </div>
+    <p class="sc-rules">🍀 Every <b>never-played</b> game you uncover pays 40 chips · uncover 3 never-played games for the 200-chip <b>Fresh Start bonus</b>.</p>
+  </div>
+</main>
+
+<main id="bingo" hidden>
+  <header>
+    <div><h1>🎱 Song Bingo 🎱</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <div class="bingocard">
+    <div class="bingohead"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <div class="bingogrid" id="bingoGrid" role="grid" aria-label="Bingo card"></div>
+    <p class="sc-msg" id="bingoMsg" aria-live="polite"></p>
+    <div class="controls"><button class="btn red" id="bingoNew">🔀 New card</button></div>
+    <p class="hint">Squares fill by themselves as Spotify plays, even with Pulse's window closed: your top artists plus song challenges.
+      Every finished row, column or diagonal pays <b>150 chips</b>; the whole card pays a <b>1,000-chip blackout</b>.</p>
+  </div>
+</main>
+
+<main id="trophies" hidden>
+  <header>
+    <div><h1>🏆 Trophy Room 🏆</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <section>
+    <h2>📜 Today's contract</h2>
+    <div class="card contract" id="contract"><p class="empty">The dealer is drawing up today's contract…</p></div>
+  </section>
+  <section>
+    <h2>🎯 Completion chase · your games closest to 100%</h2>
+    <div id="chase" class="chase"><p class="empty">Checking your library…</p></div>
+  </section>
+  <section>
+    <h2>🥇 Trophy wall · achievements under 10% of players have</h2>
+    <p class="hint" id="trophyNote"></p>
+    <div id="wall" class="wall"></div>
+  </section>
+</main>
+
+<main id="theater" hidden>
+  <header>
+    <div><h1>🎬 Movie Theater 🎬</h1><div class="bulbs"></div></div>
+    <nav class="floor"><button class="btn" id="ytOut" hidden>Sign out of YouTube</button><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <section class="card ytsetup" id="ytSetup" hidden>
+    <h2>Connect your YouTube</h2>
+    <p class="hint" style="text-align:left;margin:0">Pulse signs in with your own Google app, so your login stays on this PC. One-time setup, about 15 minutes:</p>
+    <ol>
+      <li>Open the <a href="https://console.cloud.google.com/projectcreate">Google Cloud console</a> and create a project (any name).</li>
+      <li>Turn on the <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com">YouTube Data API v3</a> for it.</li>
+      <li>Go to <a href="https://console.cloud.google.com/auth/overview">Google Auth Platform</a>, click Get started, pick <b>External</b>, and fill in the app name and your email.</li>
+      <li>Under <b>Audience</b>, add your Gmail as a <b>test user</b>. (Test mode signs you out every 7 days; publishing avoids that but Google wants a homepage and privacy policy site.)</li>
+      <li>Under <b>Clients</b>, create a client with application type <b>Desktop app</b>, then paste its ID and secret here:</li>
+    </ol>
+    <form id="ytKeys" class="ytkeys">
+      <label>Client ID <input name="clientId" required autocomplete="off" placeholder="…apps.googleusercontent.com"></label>
+      <label>Client secret <input name="clientSecret" required autocomplete="off" type="password"></label>
+      <div class="controls"><button class="btn red" type="submit">Save</button><span id="ytKeysMsg" class="hint" aria-live="polite"></span></div>
+    </form>
+  </section>
+  <section class="card ytsetup" id="ytSignin" hidden>
+    <h2>Sign in to YouTube</h2>
+    <p class="hint" style="text-align:left;margin:0">Google opens in your browser. It will warn that the app isn't verified: that's your own app, so click <b>Advanced</b>, then <b>Go to</b> your app.</p>
+    <div class="controls"><button class="btn red" id="ytIn">Sign in with Google</button><button class="btn" id="ytRekey">Change keys</button><span id="ytInMsg" class="hint" aria-live="polite"></span></div>
+  </section>
+  <section id="ytLib" hidden>
+    <div class="card screen"><div id="ytScreen"><p class="empty">🍿 Pick something to watch below.</p></div></div>
+    <nav class="floor" style="justify-content:flex-start">
+      <button class="rule" data-yt="home">🏠 Home</button><button class="rule" data-yt="subs">📺 Subscriptions</button><button class="rule" data-yt="playlists">📼 Playlists</button><button class="rule" data-yt="liked">👍 Liked</button>
+      <form id="ytSearch" class="ytsearch" role="search">
+        <input type="search" name="q" maxlength="100" required placeholder="Search YouTube…" aria-label="Search YouTube" autocomplete="off">
+        <button class="btn red" type="submit">🔍 Search</button>
+      </form>
+    </nav>
+    <h2 id="ytTitle"></h2>
+    <div id="ytGrid" class="ytgrid"></div>
+    <div class="controls"><button class="btn" id="ytMore" hidden>Load more</button></div>
+  </section>
+</main>
+
+<main id="shop" hidden>
+  <header>
+    <div><h1>🛍 Perk Shop 🛍</h1><div class="bulbs"></div></div>
+    <nav class="floor"><span class="bankpill">🪙 <b class="bank">0</b></span><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <p class="hint">Spend your winnings on looks for the whole casino. Buy once, switch any time.</p>
+  <div id="shopItems"></div>
+</main>
+
+<main id="settings" hidden>
+  <header>
+    <div><h1>⚙ Settings ⚙</h1><div class="bulbs"></div></div>
+    <nav class="floor"><a class="btn" href="#">← Lobby</a></nav>
+  </header>
+  <form class="card settingsform" id="settingsForm">
+    <fieldset><legend>Deals</legend>
+      <label>Currency symbol for price filters <input name="currency" maxlength="3" size="4"></label>
+      <label>Check Steam for deals every <input name="salesMinutes" type="number" min="10" max="1440" step="5"> minutes <small>(plus 10:05 AM PT daily)</small></label>
+    </fieldset>
+    <fieldset><legend>Sound</legend>
+      <label>Effects volume <input name="volume" type="range" min="0" max="1" step="0.05"></label>
+    </fieldset>
+    <fieldset><legend>Windows notifications</legend>
+      <label><input type="checkbox" name="notifyDeals"> New deals after the 10 AM PT drop</label>
+      <label><input type="checkbox" name="notifyFree"> A game goes free to keep</label>
+      <label><input type="checkbox" name="notifyPrice"> A watched game hits your price</label>
+      <label><input type="checkbox" name="notifyJackpot"> Jackpots, bingo blackouts and finished contracts</label>
+      <label><input type="checkbox" name="notifySession"> A gaming session ends (10+ minutes)</label>
+    </fieldset>
+    <fieldset><legend>Look</legend>
+      <p class="hint" style="text-align:left;margin:0">Felt, card backs, chips, jukebox skins and video backgrounds live in the <a href="#shop">Perk Shop</a>.</p>
+    </fieldset>
+    <div class="controls"><button class="btn red" type="submit">Save settings</button><span id="settingsMsg" aria-live="polite"></span></div>
+  </form>
+</main>
+
+<dialog id="detail" aria-label="Game stats"></dialog>
+<button class="btn" id="mute" style="position:fixed;right:16px;bottom:16px;z-index:5;padding:10px 14px">🔊</button>
+
+<script>
+// Chips, perks and streaks live in this window's storage; Pulse keeps a backup copy so a different window (e.g. the built-in one) gets them back.
+// Runs first, synchronously, because the code below reads storage as it loads.
+const myKeys = () => { const o = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('pulse-')) o[k] = localStorage.getItem(k); } } catch {} return o; };
+try {
+  if (!Object.keys(myKeys()).length) { // a fresh window: restore the backup
+    const x = new XMLHttpRequest(); x.open('GET', '/api/store', false); x.send();
+    for (const [k, v] of Object.entries(JSON.parse(x.responseText || '{}'))) localStorage.setItem(k, v);
+  }
+} catch {}
+let storeSnap = '';
+function backupStore() {
+  const s = JSON.stringify(myKeys());
+  if (s !== storeSnap && s !== '{}') { storeSnap = s; fetch('/api/do/store', { method: 'POST', headers: { 'X-Pulse': '1', 'Content-Type': 'application/json' }, body: s, keepalive: true }).catch(() => {}); }
+}
+setInterval(backupStore, 10000); addEventListener('pagehide', backupStore);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const clock = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const hours = m => m >= 60 ? `${(m / 60).toFixed(m < 600 ? 1 : 0)} h` : `${Math.round(m)} min`;
+const header = id => `https://shared.steamstatic.com/store_item_assets/steam/apps/${esc(id)}/header.jpg`;
+const rnd = (a, b) => a + Math.random() * (b - a);
+let now = {};
+let cfg = { currency: '$', volume: .6 }; // the Settings page; loaded from the server below
+const post = (path, body) => fetch(path, { method: 'POST', headers: { 'X-Pulse': '1', 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+const notify = (title, body) => post('/api/do/notify', { kind: 'Jackpot', title, body }).catch(() => {}); // Windows notification, if you allow jackpot alerts
+const money = c => `${esc(cfg.currency)}${(c / 100).toFixed(2)}`;
+// ids that go inside click-handler code are digits only, so no quote in a name or id can break out of the JS string
+const num = v => String(v).replace(/\D/g, '');
+function applyBg(yt) {
+  const id = /^[\w-]{11}$/.test(yt || '') ? yt : '';
+  let f = $('bgyt');
+  if (f && f.dataset.id !== id) { f.remove(); f = null; }
+  if (id && !f) {
+    f = Object.assign(document.createElement('iframe'), { id: 'bgyt', tabIndex: -1, title: 'Background video', allow: 'autoplay; encrypted-media',
+      src: `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&disablekb=1&playsinline=1&rel=0` });
+    f.sandbox = 'allow-scripts allow-same-origin allow-presentation'; // no popups or navigating Pulse away
+    f.dataset.id = id; f.referrerPolicy = 'strict-origin-when-cross-origin'; // YouTube refuses to play embeds sent with no referrer
+    f.setAttribute('aria-hidden', 'true');
+    $('shade').before(f);
+  }
+  for (const el of [$('scene'), $('bgvid')]) if (el) el.hidden = !!id; // the video replaces the scene and bg.mp4
+}
+fetch('/api/settings').then(r => r.json()).then(s => { cfg = s; if (allDeals.length) filterDeals(deals[dealIdx]?.id, dealIdx); }).catch(() => {});
+
+// --- cartoon casino scene: one SVG, animated with CSS ---
+(function buildScene() {
+  const ink = '#1a0610', colors = ['#e0333c', '#7b2ff7', '#1f8fff', '#ff8a00', '#16a34a', '#e91e63', '#0ea5a5'];
+  const syms = ['7', '🍒', 'BAR', '🔔', '💎'];
+  const reelCol = [...syms, ...syms].map((s, i) => `<text x="21" y="${40 + i * 52}" text-anchor="middle" font-size="${s === 'BAR' ? 15 : 30}" font-weight="900" fill="${s === '7' ? '#e0333c' : ink}">${s}</text>`).join('');
+  const chandelier = (x, i) => `<g class="sway" style="animation-delay:${-i * 1.7}s">
+      <line x1="${x}" y1="0" x2="${x}" y2="70" stroke="#e3c164" stroke-width="5"/>
+      <path d="M${x - 120} 80 h240 q-20 70 -120 80 q-100 -10 -120 -80z" fill="#e3c164" stroke="${ink}" stroke-width="6"/>
+      ${[-100, -60, -20, 20, 60, 100].map((d, j) => `<line x1="${x + d * .8}" y1="150" x2="${x + d * .8}" y2="${175 + (j % 2) * 18}" stroke="#bfe9ff" stroke-width="3"/><path d="M${x + d * .8} ${178 + (j % 2) * 18} l7 10 -7 10 -7 -10z" fill="#dff6ff" stroke="${ink}" stroke-width="2"/>`).join('')}
+      ${[-105, -63, -21, 21, 63, 105].map((d, j) => `<circle class="bulb" style="animation-delay:${-j * .2}s" cx="${x + d}" cy="72" r="11" stroke="${ink}" stroke-width="4"/>`).join('')}
+    </g>`;
+  const slot = (x, i) => {
+    const c = colors[i % colors.length];
+    return `<g transform="translate(${x} 470)">
+      <rect x="0" y="70" width="190" height="290" rx="26" fill="${c}" stroke="${ink}" stroke-width="7"/>
+      <path d="M8 80 Q95 -20 182 80z" fill="${c}" stroke="${ink}" stroke-width="7"/>
+      <path d="M30 70 Q95 10 160 70" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="8" stroke-linecap="round"/>
+      <circle class="bulb" style="animation-delay:${-i * .3}s" cx="95" cy="22" r="15" stroke="${ink}" stroke-width="5"/>
+      <rect x="22" y="104" width="146" height="92" rx="12" fill="#fff" stroke="${ink}" stroke-width="6"/>
+      ${[0, 1, 2].map(k => `<svg x="${28 + k * 46}" y="110" width="42" height="80"><g class="reel" style="animation-duration:${rnd(.6, 1.6).toFixed(2)}s">${reelCol}</g></svg>`).join('')}
+      <rect x="32" y="215" width="126" height="26" rx="13" fill="${ink}"/><text x="95" y="234" text-anchor="middle" font-size="16" font-weight="900" fill="#ffe48f">${['JACKPOT', 'LUCKY 7', 'WIN!', 'BONUS'][i % 4]}</text>
+      ${[50, 80, 110, 140].map((bx, k) => `<circle cx="${bx}" cy="268" r="10" fill="${['#ffe48f', '#fff', '#7fffd4', '#ff9f9f'][k]}" stroke="${ink}" stroke-width="4"/>`).join('')}
+      <rect x="40" y="300" width="110" height="34" rx="8" fill="#3a0a14" stroke="${ink}" stroke-width="5"/>
+      <g class="lever" style="animation-delay:${-i * 1.1}s"><line x1="190" y1="190" x2="222" y2="110" stroke="#ccc" stroke-width="8" stroke-linecap="round"/><circle cx="222" cy="108" r="14" fill="#e0333c" stroke="${ink}" stroke-width="5"/></g>
+    </g>`;
+  };
+  $('scene').innerHTML = `<svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a0d26"/><stop offset="1" stop-color="#1a0410"/></linearGradient>
+      <pattern id="deco" width="120" height="120" patternUnits="userSpaceOnUse"><path d="M0 120 A60 60 0 0 1 120 120 M20 120 A40 40 0 0 1 100 120 M40 120 A20 20 0 0 1 80 120 M60 60 V120" fill="none" stroke="#e3c164" stroke-opacity=".12" stroke-width="3"/></pattern>
+      <pattern id="carpet" width="60" height="40" patternUnits="userSpaceOnUse"><rect width="60" height="40" fill="#5a0b1c"/><path d="M30 4 L52 20 L30 36 L8 20z" fill="#7a1428" stroke="#e3c164" stroke-opacity=".5" stroke-width="2"/></pattern>
+      <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <rect width="1600" height="900" fill="url(#wall)"/><rect width="1600" height="840" fill="url(#deco)"/>
+    ${[200, 800, 1400].map(x => `<rect x="${x - 26}" y="0" width="52" height="830" fill="#2a0612" stroke="#e3c164" stroke-opacity=".4" stroke-width="3"/>`).join('')}
+    <g class="neon" filter="url(#glow)"><rect x="560" y="250" width="480" height="130" rx="30" fill="#1a0410" stroke="#ff4fd8" stroke-width="8"/>
+      <text x="800" y="345" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-size="84" font-weight="800" fill="#fff3c4" stroke="#ff9f1c" stroke-width="3">CASINO</text></g>
+    ${[300, 800, 1300].map(chandelier).join('')}
+    <rect y="820" width="1600" height="80" fill="url(#carpet)"/><rect y="816" width="1600" height="8" fill="#e3c164"/>
+    ${[-40, 190, 420, 650, 880, 1110, 1340, 1570].map(slot).join('')}
+  </svg>`;
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div'), card = i % 3 === 0, suit = '♠♥♦♣'[i % 4];
+    el.className = 'fall ' + (card ? 'card-p' : 'coin');
+    el.innerHTML = card ? `<span style="color:${'♥♦'.includes(suit) ? '#d11' : '#111'}">${suit}</span>` : '$';
+    el.style.cssText = `left:${rnd(0, 98)}vw;animation-duration:${rnd(9, 18)}s;animation-delay:${rnd(-18, 0)}s;opacity:${rnd(.45, .9)}`;
+    document.body.append(el);
+  }
+})();
+
+// --- lobby ---
+async function pollNow() {
+  try { now = await (await fetch('/api/now')).json(); } catch { return; }
+  $('now').classList.toggle('playing', !!now.playing);
+  $('state').textContent = !now.title ? 'Nothing playing' : now.playing ? 'Now playing' : 'Paused';
+  $('title').textContent = now.title || '—';
+  $('artist').textContent = now.artist || '';
+  $('album').textContent = now.album || '';
+  $('source').textContent = (now.app || '').split('!').pop().replace(/\.exe$/i, ''); // "SpotifyAB.SpotifyMusic_x!Spotify" -> "Spotify"
+  if (now.art && $('art').src !== now.art) $('art').src = now.art;
+  if (!now.art) $('art').removeAttribute('src');
+  const sign = now.title ? `★ NOW SPINNING ★ ${now.title} — ${now.artist || 'unknown artist'}${now.album ? ` ★ from “${now.album}”` : ''} ★ PULSE JUKEBOX ★` : '★ PULSE JUKEBOX ★ press play on something ★';
+  if ($('marquee').textContent !== sign) $('marquee').textContent = sign; // only on change, so the scroll doesn't restart
+}
+// equalizer bars: each bounces at its own speed and height (decorative; Windows doesn't share the audio itself)
+$('spectrum').innerHTML = Array.from({ length: 40 }, (_, i) => `<i style="--d:${rnd(.25, .7).toFixed(2)}s;--h:${Math.round(35 + 60 * Math.sin(i / 39 * Math.PI) * rnd(.6, 1))}%"></i>`).join('');
+
+function tick() {
+  const pos = now.playing ? now.pos + (Date.now() - now.at) / 1000 : now.pos || 0;
+  const p = now.dur ? Math.min(pos, now.dur) : 0;
+  $('prog').style.width = now.dur ? `${p / now.dur * 100}%` : '0';
+  $('pos').textContent = clock(p); $('dur').textContent = clock(now.dur || 0);
+  requestAnimationFrame(tick);
+}
+
+async function pollStats() {
+  let s; try { s = await (await fetch('/api/stats')).json(); } catch { return; }
+  const games = s.games || [], apps = s.apps || [];
+  const mins = games.reduce((a, g) => a + g.minutes, 0);
+  const got = games.reduce((a, g) => a + (g.ach?.got || 0), 0), total = games.reduce((a, g) => a + (g.ach?.total || 0), 0);
+  $('totals').innerHTML = `
+    <div class="card"><b>${hours(mins)}</b><span>wagered in your top ${games.length}</span></div>
+    <div class="card"><b>${got} / ${total}</b><span>achievements won</span></div>`;
+  if (!deck.length && s.deck?.length) { deck = s.deck; deal(); }
+  $('games').innerHTML = games.map((g, i) => `
+    <article class="card game" data-id="${esc(g.id)}" tabindex="0" role="button" aria-label="Full stats for ${esc(g.name)}">
+      <span class="rank">${i + 1}</span>
+      <img class="hdr" alt="" loading="lazy" src="${header(g.id)}" onerror="this.style.visibility='hidden'">
+      <div class="body">
+        <b>${esc(g.name)}</b>
+        <div class="row"><span>${hours(g.minutes)}</span>${g.ach ? `<span>🏆 ${g.ach.got}/${g.ach.total}</span>` : '<span>no achievements</span>'}</div>
+        ${g.ach ? `<div class="bar"><i style="width:${g.ach.got / g.ach.total * 100}%"></i></div>
+        <div class="badges">${(g.ach.recent || []).map(a => `<img src="${esc(a.img)}" alt="${esc(a.name)}" title="${esc(a.name)} — ${esc(a.desc)}">`).join('')}</div>` : ''}
+      </div>
+    </article>`).join('') || '<p class="empty card">No Steam playtime found.</p>';
+  // VIP lounge: each app is a chip tower as tall as its share of your time, coloured by tier
+  const top = apps[0]?.seconds || 1;
+  const tier = s => s >= 180000 ? ['Diamond', '#7fe7ff'] : s >= 72000 ? ['Platinum', '#dfe7ee'] : s >= 18000 ? ['Gold', '#e3c164'] : s >= 3600 ? ['Silver', '#aeb4bd'] : ['Bronze', '#c07a45'];
+  $('apps').innerHTML = apps.map((a, i) => { const [t, c] = tier(a.seconds); return `
+    <div class="tower" role="listitem" style="--c:${c}" aria-label="${esc(a.name)}: ${hours(a.seconds / 60)}, ${t} tier">
+      <span class="t-val">${hours(a.seconds / 60)}</span>
+      <div class="pile">${a.icon ? `<img src="${a.icon}" alt="">` : '<span class="ph"></span>'}<div class="stack" style="height:${Math.max(12, a.seconds / top * 150)}px"></div></div>
+      <b class="t-name">${i === 0 ? '👑 ' : ''}${esc(a.name)}</b>${a.game ? '<span class="gtag">🎮 game</span>' : ''}
+      <span class="t-tier">${t}</span>
+    </div>`; }).join('') || '<p class="empty">Keep Pulse open — app time builds up as you use your PC.</p>';
+  $('rotation').innerHTML = (s.rotation || []).map((r, i) => `
+    <li><span class="code">${'ABCDE'[i]}${i + 1}</span><span><b>${esc(r.title)}</b><small>${esc(r.artist)}</small></span><span class="plays">×${r.plays}</span></li>`).join('')
+    || '<li><span class="code">A1</span><span><b>Nothing yet</b><small>songs you play show up here</small></span></li>';
+
+  // games vs everything else (anything running from a Steam library counts as a game)
+  const sp = s.split || { games: 0, other: 0 }, tot = (sp.games + sp.other) || 1;
+  $('split').innerHTML = `<div class="splitlabels"><span style="color:#7fe7ff">🎮 Games · ${hours(sp.games / 60)} · ${Math.round(sp.games / tot * 100)}%</span>
+      <span style="color:var(--gold)">Everything else · ${hours(sp.other / 60)} · ${Math.round(sp.other / tot * 100)}%</span></div>
+    <div class="splitbar" role="img" aria-label="Games ${Math.round(sp.games / tot * 100)} percent, everything else ${Math.round(sp.other / tot * 100)} percent">
+      <i style="width:${sp.games / tot * 100}%;background:#7fe7ff"></i><i style="width:${sp.other / tot * 100}%;background:var(--gold)"></i></div>`;
+
+  // PC calendar: one square per day, coloured by that day's top app, brighter = more hours
+  const heat = s.heatmap || [], maxS = Math.max(3600, ...heat.map(d => d.seconds));
+  const hue = name => [...String(name)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+  const pad = heat.length ? new Date(heat[0].date + 'T00:00').getDay() : 0; // rows are Sunday..Saturday
+  $('heat').innerHTML = '<i style="visibility:hidden"></i>'.repeat(pad) + heat.map(d => {
+    const day = new Date(d.date + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return `<i title="${day}: ${d.seconds ? `${hours(d.seconds / 60)}${d.top ? `, mostly ${esc(d.top)}` : ''}` : 'nothing tracked'}"
+      style="${d.seconds ? `background:hsl(${hue(d.top)} 75% 55% / ${(.25 + .75 * d.seconds / maxS).toFixed(2)})` : ''}"></i>`;
+  }).join('');
+  const tops = [...new Set(heat.filter(d => d.top).map(d => d.top))].slice(0, 8);
+  $('heatLegend').innerHTML = tops.map(t => `<span><b style="background:hsl(${hue(t)} 75% 55%)"></b>${esc(t)}</span>`).join('') || 'Days fill in as Pulse tracks your PC time.';
+}
+
+// --- game details ---
+const when = t => t ? new Date(t * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const rarity = p => p == null ? '' : `<span class="pill ${p < 5 ? 'ultra' : p < 20 ? 'rare' : ''}">${p < 5 ? 'Ultra rare' : p < 20 ? 'Rare' : 'Common'} · ${(+p).toFixed(1)}%</span>`;
+let detail = null, filter = 'all';
+
+async function openGame(id) {
+  const d = $('detail');
+  d.innerHTML = '<div class="dbody"><p class="q" style="color:var(--gold)">Pulling the file from the cage…</p></div>';
+  d.showModal();
+  try { detail = await (await fetch(`/api/game?id=${encodeURIComponent(id)}`)).json(); } catch { detail = null; }
+  if (!detail) { d.querySelector('.dbody').textContent = 'Couldn’t load this game.'; return; }
+  filter = 'all'; renderGame();
+}
+
+function renderGame() {
+  const g = detail, a = g.achievements || [], got = a.filter(x => x.got);
+  const rarest = got.filter(x => x.pct != null).sort((x, y) => x.pct - y.pct)[0];
+  const list = a.filter(x => filter === 'all' || (filter === 'got') === x.got)
+    .sort((x, y) => (y.got - x.got) || (x.got ? y.at - x.at : (y.pct ?? 0) - (x.pct ?? 0))); // newest unlocks, then easiest locked
+  $('detail').innerHTML = `
+    <div class="dhead"><img src="${header(g.id)}" alt="" onerror="this.remove()"><h3>${esc(g.name)}</h3>
+      <button class="dclose" aria-label="Close" onclick="$('detail').close()">✕</button></div>
+    <div class="dbody">
+      <div class="tiles">
+        <div><b>${hours(g.minutes)}</b><span>total played</span></div>
+        <div><b>${hours(g.twoWeeks)}</b><span>last 2 weeks</span></div>
+        <div><b>${when(g.lastPlayed)}</b><span>last played</span></div>
+        <div><b>${a.length ? `${got.length}/${a.length}` : '—'}</b><span>${a.length ? `${Math.round(got.length / a.length * 100)}% achievements` : 'no achievements'}</span></div>
+        ${rarest ? `<div><b>${esc(rarest.name)}</b><span>rarest win · ${(+rarest.pct).toFixed(1)}% of players</span></div>` : ''}
+      </div>
+      ${a.length ? `<div class="bar"><i style="width:${got.length / a.length * 100}%"></i></div>` : ''}
+      <div><h2 style="margin:0 0 8px">🎵 Your ${esc(g.name)} soundtrack</h2>${(g.soundtrack || []).length
+        ? `<ol class="rotation">${g.soundtrack.map((s, i) => `<li><span class="code">${i + 1}</span><span><b>${esc(s.title)}</b><small>${esc(s.artist)}</small></span><span class="plays">${hours(s.seconds / 60)}</span></li>`).join('')}</ol>`
+        : '<p style="color:var(--dim);margin:0">Play music while you play this game and Pulse will remember its soundtrack.</p>'}</div>
+      <div class="filters">
+        ${[['all', `All ${a.length}`], ['got', `Unlocked ${got.length}`], ['locked', `Locked ${a.length - got.length}`]].map(([k, l]) =>
+          `<button class="rule" aria-pressed="${filter === k}" onclick="filter='${k}';renderGame()">${l}</button>`).join('')}
+        <a class="btn" style="margin-left:auto" href="steam://rungameid/${esc(g.id)}">▶ Play</a>
+      </div>
+      ${g.partial ? '<p style="color:var(--dim);margin:0">Showing Steam’s local preview only. Make your Steam game details public to see every achievement.</p>' : ''}
+      <div>${list.map(x => `
+        <div class="ach ${x.got ? '' : 'locked'}">
+          <img src="${esc(x.img)}" alt="" loading="lazy">
+          <div><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div>
+          <div class="meta">${x.got ? `Won ${when(x.at)}` : 'Locked'}<br>${rarity(x.pct)}</div>
+        </div>`).join('') || '<p style="color:var(--dim)">Nothing here.</p>'}</div>
+    </div>`;
+}
+$('detail').addEventListener('click', e => { if (e.target === $('detail')) $('detail').close(); }); // click outside closes
+$('games').addEventListener('click', e => { const c = e.target.closest('.game'); if (c) openGame(c.dataset.id); });
+$('games').addEventListener('keydown', e => { const c = e.target.closest('.game'); if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openGame(c.dataset.id); } });
+
+// --- higher or lower ---
+let deck = [], cur = null, next = null, streak = 0, best = 0, busy = false;
+try { best = +localStorage.getItem('pulse-best') || 0; } catch {}
+const ranks = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
+function face(g, showHours) {
+  const i = deck.indexOf(g), suit = '♠♥♦♣'[i % 4], red = '♥♦'.includes(suit), r = ranks[i % 13];
+  return `<div class="face ${red ? 'redsuit' : ''}">
+    <span class="corner tl">${r}<br>${suit}</span><span class="corner br">${r}<br>${suit}</span>
+    <img src="${header(g.id)}" alt="" onerror="this.style.visibility='hidden'">
+    <b>${esc(g.name)}</b>
+    <span class="hrs">${showHours ? hours(g.minutes) : '?'}</span>
+  </div>`;
+}
+const draw = except => { let g; do g = deck[Math.floor(Math.random() * deck.length)]; while (deck.length > 1 && g === except); return g; };
+function deal(keep) {
+  cur = keep || draw(); next = draw(cur);
+  $('curCard').innerHTML = `<div class="in">${face(cur, true)}</div>`;
+  $('nextCard').className = 'pcard down';
+  $('nextCard').innerHTML = `<div class="in">${face(next, false)}<div class="back">♠</div></div>`;
+  $('holq').textContent = `Did you play ${next.name} more or less than ${cur.name}?`;
+  $('streak').textContent = streak; $('best').textContent = best;
+  $('hi').disabled = $('lo').disabled = busy = false;
+}
+function guess(up) {
+  if (busy || !next) return;
+  busy = true; $('hi').disabled = $('lo').disabled = true;
+  $('nextCard').querySelector('.hrs').textContent = hours(next.minutes);
+  $('nextCard').classList.remove('down');
+  const win = up ? next.minutes >= cur.minutes : next.minutes <= cur.minutes;
+  if (win) { streak++; if (streak > best) { best = streak; try { localStorage.setItem('pulse-best', best); } catch {} } }
+  $('holmsg').textContent = win ? `✔ Winner! ${hours(next.minutes)} vs ${hours(cur.minutes)}` : `✖ Bust! Streak ended at ${streak}.`;
+  $('holmsg').style.color = win ? 'var(--gold)' : '#ff6b6b';
+  (win ? sfx.win : sfx.bust)();
+  if (!win) streak = 0;
+  setTimeout(() => deal(win ? next : null), 1600);
+}
+$('hi').onclick = () => guess(true); $('lo').onclick = () => guess(false);
+
+// --- roulette ---
+let all = null, installed = [], slices = [], table = 'single', turned = 0, ballTurned = 0, spinning = false;
+
+// hot & cold: the longer since you last played, the bigger the slice (1x this week, 2x after 2 months, 3x after 4+ months or never)
+const weight = g => g.lastPlayed ? Math.min(3, 1 + (Date.now() / 1000 - g.lastPlayed) / 86400 / 60) : 3;
+function layout() {
+  const w = installed.map(weight), total = w.reduce((a, b) => a + b, 0);
+  let s = 0; slices = w.map(v => { const o = { start: s, size: v / total * 2 * Math.PI }; s += o.size; return o; }); // radians clockwise from the marker
+}
+// which slice is under the marker when the rotor is turned `deg` degrees clockwise
+const sliceAt = deg => {
+  const a = ((360 - deg % 360) % 360) * Math.PI / 180, i = slices.findIndex(s => a >= s.start && a < s.start + s.size);
+  return i < 0 ? slices.length - 1 : i; // float rounding can leave a hair-thin gap before 360°
+};
+
+function drawWheel(win = -1) {
+  const c = $('wheel'), x = c.getContext('2d'), r = c.width / 2;
+  const pocketIn = r * .86, nameEnd = r * .83;
+  x.clearRect(0, 0, c.width, c.height);
+  installed.forEach((g, i) => {
+    const a = -Math.PI / 2 + slices[i].start, seg = slices[i].size; // slice 0 starts under the marker
+    const base = i === 0 ? '#0a7a3c' : i % 2 ? '#c4141e' : '#141414', inner = i === 0 ? '#076030' : i % 2 ? '#8e0d15' : '#0a0a0a';
+    const slice = (r0, r1, fill) => { x.beginPath(); x.arc(r, r, r1, a, a + seg); x.arc(r, r, r0, a + seg, a, true); x.closePath(); x.fillStyle = fill; x.fill(); };
+    slice(pocketIn, r, i === win ? '#ffd54a' : base);
+    const grad = x.createRadialGradient(r, r, r * .2, r, r, pocketIn); grad.addColorStop(0, '#000'); grad.addColorStop(1, i === win ? '#c99a1e' : inner);
+    slice(r * .2, pocketIn, grad);
+    x.save(); x.translate(r, r); x.rotate(a + seg / 2);
+    x.textBaseline = 'middle';
+    x.fillStyle = i === win ? '#1d1404' : '#fff'; x.textAlign = 'center'; x.font = `800 ${Math.min(34, seg * r * .7)}px Inter, Segoe UI, sans-serif`;
+    x.save(); x.translate(r * .93, 0); x.rotate(Math.PI / 2); x.fillText(i, 0, 0); x.restore(); // pocket number, upright to the rim
+    x.fillStyle = i === win ? '#fff3c4' : '#f6efd9'; x.textAlign = 'right'; x.font = `600 ${Math.min(28, seg * nameEnd * .7)}px Inter, Segoe UI, sans-serif`;
+    x.fillText(g.name.length > 24 ? g.name.slice(0, 23) + '…' : g.name, nameEnd - 8, 0);
+    x.restore();
+  });
+  // gold frets between slices and around the rings
+  x.strokeStyle = '#e3c164';
+  slices.forEach(s => { const a = -Math.PI / 2 + s.start; x.lineWidth = 3; x.beginPath(); x.moveTo(r + Math.cos(a) * r * .2, r + Math.sin(a) * r * .2); x.lineTo(r + Math.cos(a) * r, r + Math.sin(a) * r); x.stroke(); });
+  [[pocketIn, 6], [r * .2, 6], [r - 3, 6]].forEach(([rr, w]) => { x.lineWidth = w; x.beginPath(); x.arc(r, r, rr, 0, 2 * Math.PI); x.stroke(); });
+}
+
+// Re-reads the Steam library; only redraws when games were added/removed, and never mid-spin (retried next poll).
+async function loadInstalled() {
+  if (!all && $('count')) $('count').textContent = 'Shuffling the deck…'; // first run looks up single/multiplayer for every game
+  let fresh; try { fresh = await (await fetch('/api/installed')).json(); } catch { if (!all) { all = []; setTable(table); } return; }
+  const key = list => list.map(g => `${g.id}:${+g.single}${+g.multi}${+g.banned}:${g.lastPlayed}`).join();
+  if (spinning || (all && key(fresh) === key(all))) return;
+  all = fresh;
+  setTable(table);
+}
+setInterval(() => location.hash === '#roulette' && loadInstalled(), 60000);
+
+function setTable(t) {
+  if (spinning) return;
+  table = t;
+  const onTable = (all || []).filter(g => g[t]);
+  installed = onTable.filter(g => !g.banned);
+  $('rules').innerHTML = onTable.map(g => `<button class="rule" aria-pressed="${!g.banned}" onclick="ban('${num(g.id)}', ${!g.banned})">${esc(g.name)}</button>`).join('');
+  document.querySelectorAll('[data-table]').forEach(b => b.setAttribute('aria-pressed', b.dataset.table === t));
+  $('felt').classList.toggle('multi', t === 'multi');
+  $('print').textContent = `♦ PULSE CASINO · ${t === 'multi' ? 'MULTIPLAYER' : 'SOLO'} TABLE ♦`;
+  $('pick').innerHTML = `<div class="name">Place your bets</div>
+    <p style="color:var(--dim);margin:0">${installed.length} ${t === 'multi' ? 'multiplayer' : 'single-player'} games on the table.<br>❄ Games you haven't played in a while get bigger slices.</p>
+    <button class="btn red" id="spin">Spin the wheel</button>`;
+  $('spin').onclick = spin; $('spin').disabled = !installed.length;
+  const c = $('wheel'); c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  layout();
+  if (installed.length) drawWheel();
+}
+document.querySelectorAll('[data-table]').forEach(b => b.onclick = () => all ? setTable(b.dataset.table) : null);
+
+// house rules: banned games stay listed (struck out) but leave the wheel; saved server-side in bans.json
+async function ban(id, on) {
+  if (spinning) return;
+  const g = all.find(x => x.id === id); if (!g) return;
+  g.banned = on; setTable(table);
+  try { await fetch(`/api/ban?id=${encodeURIComponent(id)}&on=${on ? 1 : 0}`, { method: 'POST', headers: { 'X-Pulse': '1' } }); } catch {}
+}
+
+function burst() {
+  for (let i = 0; i < 36; i++) {
+    const el = document.createElement('div'), ang = rnd(0, 2 * Math.PI), d = rnd(120, 340);
+    el.className = 'burst ' + (i % 4 ? 'coin' : 'card-p'); el.innerHTML = i % 4 ? '$' : '<span style="color:#d11">♥</span>';
+    el.style.setProperty('--x', `${Math.cos(ang) * d}px`); el.style.setProperty('--y', `${Math.sin(ang) * d}px`);
+    $('wheelBox').append(el); setTimeout(() => el.remove(), 1500);
+  }
+}
+
+// --- sound: synthesized with Web Audio, no files ---
+let ac, muted = false;
+try { muted = localStorage.getItem('pulse-mute') === '1'; } catch {}
+function beep(freq, dur, type = 'square', vol = .05, when = 0) {
+  if (muted || !cfg.volume) return;
+  ac ||= new AudioContext();
+  const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + when;
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol * cfg.volume / .6, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); // .6 = the default volume, so it sounds as before
+  o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
+}
+const sfx = {
+  tick: () => beep(1800, .025, 'square', .025),
+  clack: () => { beep(320, .07, 'triangle', .2); beep(240, .09, 'triangle', .14, .08); },
+  win: () => [523, 659, 784, 1047].forEach((f, i) => beep(f, .35, 'triangle', .12, i * .12)),
+  bust: () => { beep(180, .25, 'sawtooth', .07); beep(120, .4, 'sawtooth', .07, .2); },
+};
+function setMute(m) {
+  muted = m; try { localStorage.setItem('pulse-mute', m ? '1' : '0'); } catch {}
+  $('mute').textContent = m ? '🔇' : '🔊'; $('mute').setAttribute('aria-label', m ? 'Turn sound on' : 'Turn sound off');
+}
+$('mute').onclick = () => setMute(!muted); setMute(muted);
+
+// Spin to a random angle; whatever slice stops under the marker wins, so bigger slices win more often, like a real wheel.
+function spin() {
+  if (spinning || !installed.length) return;
+  spinning = true; $('spin').disabled = true;
+  drawWheel();
+  turned += 360 * 6 + Math.random() * 360;
+  const win = sliceAt(turned);
+  let lastSlice = -1;
+  (function ticker() { // a tick each time a fret passes the marker
+    if (!spinning) return;
+    const m = new DOMMatrix(getComputedStyle($('rotor')).transform), i = sliceAt(Math.atan2(m.b, m.a) * 180 / Math.PI);
+    if (i !== lastSlice) { lastSlice = i; sfx.tick(); }
+    requestAnimationFrame(ticker);
+  })();
+  setTimeout(sfx.clack, 5700); // ball drops into the pocket
+  ballTurned -= 360 * 9;
+  const ball = document.querySelector('.ball'); ball.classList.remove('land'); void ball.offsetWidth; ball.classList.add('land');
+  $('rotor').style.transform = `rotate(${turned}deg)`;
+  $('orbit').style.transform = `rotate(${ballTurned}deg)`;
+  $('pick').innerHTML = '<div class="name">No more bets…</div>';
+  // a timer, not 'transitionend': leaving the view mid-spin cancels the animation and that event never fires, which left the wheel stuck
+  setTimeout(() => {
+    const g = installed[win], days = g.lastPlayed ? Math.floor((Date.now() / 1000 - g.lastPlayed) / 86400) : -1;
+    drawWheel(win); burst(); sfx.win();
+    $('pick').innerHTML = `
+      <div class="win">WINNER!</div>
+      <img src="${header(g.id)}" alt="" onerror="this.remove()">
+      <div class="name">${esc(g.name)}</div>
+      <p style="color:var(--dim);margin:0">${days < 0 ? '❄ Never played' : days === 0 ? '🔥 Played today' : `${days > 30 ? '❄' : '🔥'} Last played ${days} day${days === 1 ? '' : 's'} ago`}</p>
+      <a class="btn" href="steam://rungameid/${esc(g.id)}">▶ Play now</a>
+      <button class="btn red" id="spin">Spin again</button>
+      <button class="rule" onclick="ban('${num(g.id)}', true)">🚫 Take it off the wheel</button>`;
+    $('spin').onclick = spin;
+    spinning = false;
+  }, parseFloat(getComputedStyle($('rotor')).transitionDuration) * 1000 || 6000); // 6s, or 1s with reduced motion
+}
+$('spin').onclick = spin;
+
+// --- chips: one bankroll shared by every table (kept in this browser) ---
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+let bank = 1000, bet = 100;
+try { bank = +(localStorage.getItem('pulse-bank') ?? 1000) || 0; } catch {}
+function pay(n) {
+  bank = Math.max(0, Math.round(bank + n));
+  try { localStorage.setItem('pulse-bank', bank); } catch {}
+  document.querySelectorAll('.bank').forEach(e => e.textContent = bank.toLocaleString());
+}
+// takes a stake; if you're short, the house tops you back up to 500 so you're never locked out
+function stake(n) {
+  const note = bank < n ? (pay(500 - bank), '🎁 The house spotted you 500 chips. ') : '';
+  pay(-n);
+  return note;
+}
+const BETS = [[25, '#1f8fff'], [100, '#111'], [250, '#7b2ff7']];
+function renderBets() {
+  document.querySelectorAll('.bets').forEach(el => el.innerHTML = BETS.map(([v, c]) =>
+    `<button class="chipbtn" style="--c:${c}" aria-pressed="${v === bet}" aria-label="Bet ${v} chips" onclick="bet=${v};renderBets()">${v}</button>`).join(''));
+}
+renderBets(); pay(0);
+
+// a playing card; c.g (one of your games) puts its banner on the card. Only freshly dealt cards animate.
+const SUITS = '♠♥♦♣';
+function mini(c, hidden) {
+  if (hidden) return '<div class="mcard back">♠</div>';
+  const html = `<div class="mcard ${'♥♦'.includes(c.suit) ? 'redsuit' : ''} ${c.fresh ? 'fresh' : ''}"><span class="corner tl">${c.rank}<br>${c.suit}</span>
+    ${c.g ? `<img src="${header(c.g.id)}" alt="" onerror="this.remove()"><small>${esc(c.g.name)}</small>` : `<span class="pip">${c.suit}</span>`}
+    <span class="corner br">${c.rank}<br>${c.suit}</span></div>`;
+  c.fresh = false;
+  return html;
+}
+
+// --- Session Slots: game × twist × time = tonight's quest; gold 7s pay chips ---
+const TWISTS = [['🚫', 'No pausing'], ['🧪', 'Use a character or build you never pick'], ['🏆', 'Chase one locked achievement'], ['🔇', 'Game sound off, your playlist on'],
+  ['⚡', 'Speedrun the first level'], ['🎲', 'Say yes to every random choice'], ['🥇', 'Beat your personal best'], ['🐢', 'Just explore, ignore objectives'],
+  ['👥', 'Bring a friend along'], ['📸', 'Take 3 screenshots worth framing']];
+const TIMES = [['⏱', '20 minutes'], ['⏱', '45 minutes'], ['⌛', '1 hour'], ['⌛', '2 hours'], ['🏁', 'One run or match'], ['🌙', 'Until bedtime']];
+const ITEM_H = 170; // must match .sitem height
+let reelState = [null, null, null], pulling = false;
+const reelPool = k => k === 0 ? (all || []).filter(g => !g.banned) : k === 1 ? TWISTS : TIMES;
+const pickItem = k => { const p = reelPool(k); return { v: p[Math.floor(Math.random() * p.length)], gold: Math.random() < 1 / 8 }; };
+const itemHTML = (k, it) => `<div class="sitem${it.gold ? ' gold' : ''}">${k === 0
+  ? `<img src="${header(it.v.id)}" alt="" onerror="this.remove()"><b>${esc(it.v.name)}</b>`
+  : `<span class="big">${it.v[0]}</span><b>${esc(it.v[1])}</b>`}</div>`;
+
+async function initReels() {
+  if (!all) await loadInstalled();
+  [0, 1, 2].forEach(k => { if (!reelState[k] && reelPool(k).length) { reelState[k] = { ...pickItem(k), gold: false }; $('r' + k).innerHTML = itemHTML(k, reelState[k]); } });
+}
+
+async function pull() {
+  if (pulling) return;
+  await initReels();
+  if (!reelPool(0).length) { $('slotmsg').textContent = 'No installed games to deal.'; return; }
+  pulling = true; $('pull').disabled = true; $('ticket').innerHTML = '';
+  $('slotmsg').textContent = stake(25) + 'Reels spinning…';
+  const final = [0, 1, 2].map(pickItem), ticking = setInterval(sfx.tick, 70);
+  await Promise.all([0, 1, 2].map(k => new Promise(done => {
+    const strip = $('r' + k), items = [reelState[k] || pickItem(k), ...Array.from({ length: 18 + k * 7 }, () => pickItem(k)), final[k]];
+    strip.style.transition = 'none'; strip.style.transform = 'translateY(0)';
+    strip.innerHTML = items.map(it => itemHTML(k, it)).join('');
+    void strip.offsetHeight; // commit the reset before animating
+    const secs = 1.6 + k * .7; // later reels stop later, with a little bounce
+    strip.style.transition = `transform ${secs}s cubic-bezier(.15,.85,.25,1.04)`;
+    strip.style.transform = `translateY(${-(items.length - 1) * ITEM_H}px)`;
+    setTimeout(() => { sfx.clack(); reelState[k] = final[k]; done(); }, secs * 1000); // timer, not 'transitionend' (see spin())
+  })));
+  clearInterval(ticking);
+  const golds = final.filter(f => f.gold).length, win = [0, 25, 125, 1250][golds];
+  pay(win);
+  if (golds > 1) sfx.win();
+  if (golds === 3) notify('JACKPOT!', `Three gold 7s on Session Slots: +${win} chips.`);
+  $('slotmsg').textContent = golds === 3 ? `💰 JACKPOT! +${win} chips` : golds === 2 ? `Double 7s! +${win} chips` : golds ? 'One 7: your 25 back' : 'No 7s this time, but you got a quest';
+  const [g, tw, tm] = final.map(f => f.v);
+  $('ticket').innerHTML = `<div class="ticket"><img src="${header(g.id)}" alt="">
+    <div><h3>🎟 TONIGHT'S QUEST</h3><p>${esc(g.name)}</p><span>${tw[0]} ${esc(tw[1])} · ${tm[0]} ${esc(tm[1])}</span></div>
+    <a class="btn red" href="steam://rungameid/${esc(g.id)}">▶ Play</a></div>`;
+  pulling = false; $('pull').disabled = false;
+}
+$('pull').onclick = pull;
+
+// --- Library Blackjack: the shoe is your top-40 games; more hours = higher card ---
+let shoe = [], bj = null; // bj: { p, d, bet, reveal (hole card shown), over }
+const bjRank = i => { const p = i / deck.length; return p < .1 ? 'A' : p < .4 ? ['K', 'Q', 'J', '10'][i % 4] : String(9 - Math.floor((p - .4) / .6 * 8)); };
+const cardVal = r => r === 'A' ? 11 : isNaN(r) ? 10 : +r;
+function handTotal(h) { let t = 0, aces = 0; for (const c of h) { t += cardVal(c.rank); if (c.rank === 'A') aces++; } while (t > 21 && aces--) t -= 10; return t; }
+function bjDraw() {
+  // shortcut: a fresh shoe can repeat a card already on the table (40-card library); fine for fun, use multiple decks if it bugs you
+  if (shoe.length < 4) shoe = shuffle(deck.map((g, i) => ({ g, rank: bjRank(i), suit: SUITS[i % 4] })));
+  return { ...shoe.pop(), fresh: true };
+}
+function bjRender() {
+  const live = bj && !bj.over;
+  $('pCards').innerHTML = bj ? bj.p.map(c => mini(c)).join('') : '';
+  $('dCards').innerHTML = bj ? bj.d.map((c, i) => mini(c, i === 1 && !bj.reveal)).join('') : '';
+  $('pTot').textContent = bj ? handTotal(bj.p) : '';
+  $('dTot').textContent = bj ? (bj.reveal ? handTotal(bj.d) : `${cardVal(bj.d[0].rank)} + ?`) : '';
+  $('bjHit').disabled = $('bjStand').disabled = !live || bj.reveal;
+  $('bjDouble').disabled = !live || bj.reveal || bj.p.length > 2;
+  $('bjDeal').disabled = !!live;
+}
+function bjStart() {
+  if (!deck.length) { $('bjmsg').textContent = 'Shuffling your library… try again in a second.'; return; }
+  const note = stake(bet);
+  bj = { p: [bjDraw(), bjDraw()], d: [bjDraw(), bjDraw()], bet, reveal: false, over: false };
+  sfx.tick(); bjRender();
+  $('bjmsg').textContent = `${note}Bet ${bet}. Hit or stand?`;
+  if (handTotal(bj.p) === 21) bjStand();
+}
+function bjHit() {
+  if (!bj || bj.over || bj.reveal) return;
+  bj.p.push(bjDraw()); sfx.tick(); bjRender();
+  const t = handTotal(bj.p);
+  if (t > 21) bjEnd(); else if (t === 21) bjStand();
+}
+function bjDouble() {
+  if (!bj || bj.over || bj.reveal || bj.p.length > 2) return;
+  const note = stake(bj.bet); bj.bet *= 2; bj.p.push(bjDraw()); sfx.tick(); bjRender();
+  $('bjmsg').textContent = `${note}Doubled to ${bj.bet}.`;
+  handTotal(bj.p) > 21 ? bjEnd() : bjStand();
+}
+async function bjStand() {
+  if (!bj || bj.over || bj.reveal) return;
+  bj.reveal = true; bjRender();
+  while (handTotal(bj.d) < 17) { await sleep(650); bj.d.push(bjDraw()); sfx.tick(); bjRender(); }
+  bjEnd();
+}
+function bjEnd() {
+  bj.reveal = bj.over = true; bjRender();
+  const pt = handTotal(bj.p), dt = handTotal(bj.d), pBJ = pt === 21 && bj.p.length === 2, dBJ = dt === 21 && bj.d.length === 2;
+  let back = 0, msg;
+  if (pt > 21) msg = `Bust at ${pt}. The house takes ${bj.bet}.`;
+  else if (pBJ && !dBJ) { back = bj.bet * 2.5; msg = `BLACKJACK! +${bj.bet * 1.5}`; }
+  else if (dBJ && !pBJ) msg = `Dealer blackjack. The house takes ${bj.bet}.`;
+  else if (dt > 21 || pt > dt) { back = bj.bet * 2; msg = dt > 21 ? `Dealer busts at ${dt}! +${bj.bet}` : `${pt} beats ${dt}! +${bj.bet}`; }
+  else if (pt === dt) { back = bj.bet; msg = `Push at ${pt}. Bet returned.`; }
+  else msg = `${dt} beats ${pt}. The house takes ${bj.bet}.`;
+  msg = esc(msg);
+  if (back > bj.bet) {
+    if (bj.p.some(c => c.g === deck[0])) { const bonus = Math.round((back - bj.bet) * .5); back += bonus; msg += ` 🛋 Comfort Game bonus +${bonus}`; }
+    const mvp = bj.p.reduce((a, c) => c.g.minutes > a.g.minutes ? c : a).g;
+    msg += `<br><small>Hand MVP: ${esc(mvp.name)} · <a href="steam://rungameid/${esc(mvp.id)}">▶ play it</a></small>`;
+  }
+  pay(back);
+  (back > bj.bet ? sfx.win : back ? sfx.clack : sfx.bust)();
+  $('bjmsg').innerHTML = msg;
+}
+$('bjDeal').onclick = bjStart; $('bjHit').onclick = bjHit; $('bjStand').onclick = bjStand; $('bjDouble').onclick = bjDouble;
+
+// --- Rivals Baccarat: two of your games are the two hands; the winner is tonight's game ---
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+let bac = null, bacBusy = false;
+const bacCard = () => { const r = RANKS[Math.floor(Math.random() * 13)]; return { rank: r, suit: SUITS[Math.floor(Math.random() * 4)], fresh: true, v: r === 'A' ? 1 : isNaN(r) || r === '10' ? 0 : +r }; };
+const bacTot = h => h.reduce((a, c) => a + c.v, 0) % 10;
+function bacSide(el, g, cards, won) {
+  el.className = 'side' + (won ? ' won' : '');
+  el.innerHTML = `<img src="${header(g.id)}" alt="" onerror="this.remove()"><b>${esc(g.name)}</b><div class="cards">${cards.map(c => mini(c)).join('')}</div><span class="score">${cards.length ? bacTot(cards) : '–'}</span>`;
+}
+const bacButtons = on => ['betP', 'betT', 'betB', 'rematch'].forEach(id => $(id).disabled = !on);
+async function newMatch() {
+  if (bacBusy) return;
+  if (!all) await loadInstalled();
+  const pool = shuffle((all || []).filter(g => !g.banned));
+  if (pool.length < 2) { $('bacmsg').textContent = 'You need at least two installed games.'; return; }
+  bac = { P: pool[0], B: pool[1] };
+  bacSide($('sideP'), bac.P, []); bacSide($('sideB'), bac.B, []);
+  $('betP').textContent = `Back ${bac.P.name}`; $('betB').textContent = `Back ${bac.B.name} · pays 0.95`;
+  $('bacmsg').textContent = 'Who takes tonight?';
+  bacButtons(true);
+}
+async function bacPlay(pick) {
+  if (bacBusy || !bac) return;
+  bacBusy = true; bacButtons(false);
+  const note = stake(bet), P = [], B = [];
+  const show = w => { bacSide($('sideP'), bac.P, P, w === 'p'); bacSide($('sideB'), bac.B, B, w === 'b'); };
+  $('bacmsg').textContent = note + 'Dealing…';
+  for (const h of [P, B, P, B]) { h.push(bacCard()); sfx.tick(); show(); await sleep(450); }
+  if (bacTot(P) < 8 && bacTot(B) < 8) // no "natural" 8 or 9: a hand on 0–5 draws a third card
+    // shortcut: simplified third-card rule; real baccarat's banker rule also depends on the player's third card
+    for (const h of [P, B]) if (bacTot(h) <= 5) { await sleep(300); h.push(bacCard()); sfx.tick(); show(); await sleep(450); }
+  const tp = bacTot(P), tb = bacTot(B), w = tp > tb ? 'p' : tb > tp ? 'b' : 't';
+  show(w);
+  const back = pick === w ? { p: 2, b: 1.95, t: 9 }[w] * bet : w === 't' ? bet : 0; // a tie returns side bets, like the real game
+  pay(back);
+  const winner = w === 'p' ? bac.P : bac.B;
+  $('bacmsg').innerHTML = w === 't'
+    ? `Tie at ${tp}! ${pick === 't' ? `You called it: +${bet * 8}` : 'Your bet comes back.'}`
+    : `${esc(winner.name)} wins ${Math.max(tp, tb)} to ${Math.min(tp, tb)}. ${pick === w ? `You called it! +${Math.round(back - bet)}` : `The house takes ${bet}.`}
+       <a href="steam://rungameid/${esc(winner.id)}">▶ Play it tonight</a>`;
+  (pick === w ? sfx.win : w === 't' ? sfx.clack : sfx.bust)();
+  bacBusy = false; bacButtons(true);
+}
+$('betP').onclick = () => bacPlay('p'); $('betT').onclick = () => bacPlay('t'); $('betB').onclick = () => bacPlay('b'); $('rematch').onclick = newMatch;
+
+// --- sale spotlight: a queue of ~600 live Steam deals you step through with Back/Next, like Steam's discovery queue ---
+let deals = [], dealIdx = 0;
+const storeUrl = d => `steam://store/${encodeURIComponent(d.id)}`; // opens the store page in the Steam app, not the browser
+const appInfo = {}; // id -> promise of { desc, header } from Steam, fetched once per game
+const getApp = id => appInfo[id] ??= fetch(`/api/app?id=${encodeURIComponent(id)}`).then(r => r.json()).catch(() => null);
+function showDeal(i) {
+  if (!deals.length) return;
+  dealIdx = Math.max(0, Math.min(deals.length - 1, i));
+  const d = deals[dealIdx];
+  try { localStorage.setItem('pulse-deal', d.id); } catch {} // pick up where you left off next time
+  // the search thumbnail always exists, so show it at once; swap in the real banner + description when they arrive
+  $('stage').innerHTML = `
+    <a class="hero" href="${storeUrl(d)}" aria-label="${esc(d.name)} in the Steam store"><img id="heroImg" src="${esc(d.img)}" alt="">${d.free ? '<span class="freebanner">FREE</span>' : ''}<span class="pct">${d.free ? 'FREE' : `-${d.pct}%`}</span></a>
+    <div class="billing">
+      <small>In the queue · ${dealIdx + 1} of ${deals.length}</small>
+      <h3>${esc(d.name)}</h3>
+      <span class="meta">${[d.free && '<span class="newtag">🎁 Free to keep</span>', d.wish && '<span class="wishtag">⭐ On your wishlist</span>',
+        d.lowest && '<span class="lowtag">🔥 Lowest price Pulse has seen</span>', d.cheaperWeek && `📉 Was ${money(d.cheaperWeek)} last week`,
+        d.new && '<span class="newtag">🆕 New today</span>', d.review && `⭐ ${esc(d.review)}`, d.released && `📅 ${esc(d.released)}`].filter(Boolean).join(' · ')}</span>
+      <p class="desc" id="dealDesc">Reading the back of the box…</p>
+      <div class="price"><s>${esc(d.was)}</s><b>${esc(d.now)}</b></div>
+      <a class="btn red" href="${storeUrl(d)}">Open in Steam ▶</a>
+      ${d.free ? '' : `<button class="rule" onclick="watchPrefill(deals[dealIdx])">🎯 Watch this price</button>`}
+    </div>`;
+  const shown = d.id;
+  getApp(d.id).then(info => {
+    if (deals[dealIdx]?.id !== shown) return; // you've already moved on
+    if (info?.header) $('heroImg').src = info.header;
+    $('dealDesc').textContent = info?.desc || 'No description from Steam for this one.';
+  });
+  if (deals[dealIdx + 1]) getApp(deals[dealIdx + 1].id); // warm up the next one so Next feels instant
+  $('qPos').textContent = `${dealIdx + 1} / ${deals.length}`;
+  $('qStart').disabled = $('qBack').disabled = dealIdx === 0; $('qNext').disabled = dealIdx === deals.length - 1;
+  $('lineup').innerHTML = deals.slice(dealIdx + 1, dealIdx + 9).map((n, k) =>
+    `<button aria-label="Jump to ${esc(n.name)}, ${n.pct}% off" onclick="showDeal(${dealIdx + 1 + k})"><img src="${esc(n.img)}" alt="">${n.wish ? '<span class="star">⭐</span>' : ''}<span>${n.free ? 'FREE' : `-${n.pct}%`}</span></button>`).join('');
+}
+async function loadDeals() {
+  let r; try { r = await (await fetch('/api/sales')).json(); } catch { return; }
+  if (!r.items?.length) {
+    $('stage').innerHTML = `<p class="empty">${r.loading ? 'Rounding up hundreds of deals from Steam…' : 'No deals on the board right now.'}</p>`;
+    if (r.loading) setTimeout(loadDeals, 3000);
+    return;
+  }
+  let keep = deals[dealIdx]?.id; if (!keep) try { keep = localStorage.getItem('pulse-deal'); } catch {}
+  allDeals = r.items;
+  const t = s => new Date(s).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), fresh = allDeals.filter(d => d.new).length;
+  $('dealsInfo').textContent = `Updated ${t(r.updated)} · ${fresh ? `${fresh} new since today's 10 AM PT drop · ` : ''}next drop check ${new Date(r.nextDrop).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })} (10:05 AM PT)`;
+  filterDeals(keep, dealIdx); // a refreshed list keeps your place
+}
+
+// price filter: the queue only holds deals at or under the chosen sale price
+// shortcut: labels assume dollars (your Steam store region); cents come straight from Steam, so other currencies filter by the same numbers
+const PRICES = [[Infinity, 'Any price'], [500, 'Under $5'], [1000, 'Under $10'], [2000, 'Under $20'], [4000, 'Under $40']];
+let allDeals = [], maxCents = Infinity;
+try { maxCents = +localStorage.getItem('pulse-maxprice') || Infinity; } catch {}
+function setMaxPrice(c) {
+  maxCents = c; try { localStorage.setItem('pulse-maxprice', c); } catch {}
+  filterDeals(deals[dealIdx]?.id, 0); // keep the current game if it still fits, otherwise start from the front
+}
+function filterDeals(keep, fallback) {
+  deals = allDeals.filter(d => d.cents <= maxCents);
+  $('priceFilter').innerHTML = PRICES.map(([c, label], i) =>
+    `<button class="rule" aria-pressed="${c === maxCents}" onclick="setMaxPrice(PRICES[${i}][0])">${esc(label.replace('$', cfg.currency))} <small>${allDeals.filter(d => d.cents <= c).length}</small></button>`).join('');
+  if (!deals.length) {
+    $('stage').innerHTML = '<p class="empty">No deals at that price right now.</p>'; $('lineup').innerHTML = ''; $('qPos').textContent = '0 / 0';
+    $('qStart').disabled = $('qBack').disabled = $('qNext').disabled = true;
+    return;
+  }
+  const at = deals.findIndex(d => d.id === keep);
+  showDeal(at >= 0 ? at : Math.min(fallback, deals.length - 1));
+}
+$('qStart').onclick = () => showDeal(0);
+$('qBack').onclick = () => showDeal(dealIdx - 1); $('qNext').onclick = () => showDeal(dealIdx + 1);
+document.querySelector('.spotlight').addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') showDeal(dealIdx - 1);
+  if (e.key === 'ArrowRight') showDeal(dealIdx + 1);
+});
+loadDeals(); setInterval(loadDeals, 10 * 60000); // the server re-fetches from Steam every 30 min
+
+// --- Backlog Scratchers: scratch off games you own but haven't installed ---
+let reveals = [], revealed = 0, ticketCards = [];
+// covers a panel with silver foil you rub off with the mouse/finger; Enter/Space or "Scratch all" reveals it too
+function scratchable(panel, onReveal) {
+  const c = document.createElement('canvas'); panel.append(c);
+  c.tabIndex = 0; c.setAttribute('role', 'button'); c.setAttribute('aria-label', 'Scratch panel; press Enter to reveal');
+  const w = c.width = c.offsetWidth, h = c.height = c.offsetHeight, x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#bdbdbd'); g.addColorStop(.5, '#f2f2f2'); g.addColorStop(1, '#9a9a9a');
+  x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#6b6b6b'; x.textAlign = 'center';
+  x.font = '900 24px Cinzel, Georgia, serif'; x.fillText('SCRATCH', w / 2, h / 2 - 6);
+  x.font = '700 13px Inter, sans-serif'; x.fillText('a game you already own', w / 2, h / 2 + 18);
+  x.globalCompositeOperation = 'destination-out'; // drawing now erases the foil
+  let down = false, done = false, moves = 0;
+  const clearedShare = () => { const d = x.getImageData(0, 0, w, h).data; let n = 0, t = 0; for (let i = 3; i < d.length; i += 160) { t++; if (!d[i]) n++; } return n / t; };
+  const reveal = () => { if (done) return; done = true; c.style.transition = 'opacity .4s'; c.style.opacity = 0; setTimeout(() => c.remove(), 450); onReveal(); };
+  const rub = e => {
+    if (!down || done) return;
+    const r = c.getBoundingClientRect();
+    x.beginPath(); x.arc(e.clientX - r.left, e.clientY - r.top, 24, 0, 2 * Math.PI); x.fill();
+    if (++moves % 6 === 0) { sfx.tick(); if (clearedShare() > .5) reveal(); } // half scratched = the rest flakes off
+  };
+  c.onpointerdown = e => { down = true; c.setPointerCapture(e.pointerId); rub(e); };
+  c.onpointermove = rub; c.onpointerup = c.onpointercancel = () => { down = false; };
+  c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); reveal(); } };
+  return reveal;
+}
+async function buyTicket() {
+  $('buyTicket').disabled = true; $('scmsg').textContent = 'Printing your ticket…';
+  let t; try { t = await (await fetch('/api/scratch')).json(); } catch {}
+  if (!t?.cards?.length) { $('scmsg').textContent = 'Couldn’t print a ticket. Is Steam installed, and are you online?'; $('buyTicket').disabled = false; return; }
+  $('owned').textContent = `${t.owned} games you own but haven't installed`;
+  $('scmsg').textContent = stake(50) + 'Scratch away!';
+  ticketCards = t.cards; revealed = 0;
+  $('panels').innerHTML = t.cards.map(g => `
+    <div class="panel">
+      <img src="${header(g.id)}" alt="" onerror="this.style.visibility='hidden'">
+      <b>${esc(g.name)}</b>
+      <span class="played">${g.minutes ? `Played ${hours(g.minutes)}${g.lastPlayed ? ` · last ${when(g.lastPlayed)}` : ''}` : 'Never played'}</span>
+      ${g.minutes ? '' : '<span class="tag">🍀 Fresh find +40</span>'}
+      <a class="btn red" href="steam://install/${esc(g.id)}">⬇ Install</a>
+    </div>`).join('');
+  reveals = [...$('panels').children].map((p, i) => scratchable(p, () => {
+    if (!ticketCards[i].minutes) p.classList.add('fresh-find'); // glow only once revealed, so it can't give the answer away
+    if (++revealed === ticketCards.length) settle();
+  }));
+  $('scratchAll').disabled = false;
+}
+function settle() {
+  const fresh = ticketCards.filter(g => !g.minutes).length, prize = fresh * 40 + (fresh === 3 ? 200 : 0);
+  pay(prize); (prize ? sfx.win : sfx.bust)();
+  if (fresh === 3) notify('FRESH START!', `Three never-played games on one scratcher: +${prize} chips.`);
+  $('scmsg').textContent = fresh === 3 ? `🍀 FRESH START! Three never-played games: +${prize} chips`
+    : prize ? `${fresh} fresh find${fresh > 1 ? 's' : ''}: +${prize} chips` : 'All old flames this time. Maybe one deserves a reinstall?';
+  $('buyTicket').disabled = false; $('scratchAll').disabled = true;
+}
+$('buyTicket').onclick = buyTicket; $('scratchAll').onclick = () => reveals.forEach(r => r());
+
+// --- price watch: search the store, set a price, get a Windows notification when it's reached ---
+let watchTimer, watchHits = {};
+function watchRow(g, adding) {
+  // adding: a search result with a target box; otherwise a watched game with its latest price
+  const hit = !adding && g.now != null && g.now <= g.target;
+  return `<div class="wrow ${hit ? 'hit' : ''}"><img src="${esc(g.img || header(g.id))}" alt="" onerror="this.style.visibility='hidden'">
+    <div><b>${esc(g.name)}</b><small>${adding
+      ? (g.cents ? `Now ${money(g.cents)}` : 'Free, or not for sale right now')
+      : (g.now != null ? `Now ${esc(g.nowText || money(g.now))}${g.pct ? ` (-${g.pct}%)` : ''} · alert at ${money(g.target)}${hit ? ' · 🎯 at your price!' : ''}` : `Alert at ${money(g.target)} · checking the price…`)}</small></div>
+    <div class="act">${adding
+      ? `<label>Alert at ${esc(cfg.currency)}<input type="number" min="0.01" step="0.01" id="wt${esc(g.id)}" value="${g.cents ? (g.cents * .75 / 100).toFixed(2) : ''}" aria-label="Target price for ${esc(g.name)}"></label>
+         <button class="btn red" onclick="addWatch('${num(g.id)}', this)">🎯 Watch</button>`
+      : `<a class="btn" href="steam://store/${esc(g.id)}">Store</a><button class="rule" onclick="removeWatch('${num(g.id)}')" aria-label="Stop watching ${esc(g.name)}">✕</button>`}</div></div>`;
+}
+$('watchSearch').addEventListener('input', () => {
+  clearTimeout(watchTimer);
+  const q = $('watchSearch').value.trim();
+  if (q.length < 2) { $('watchResults').innerHTML = ''; return; }
+  watchTimer = setTimeout(async () => { // wait for a pause in typing
+    let r = []; try { r = await (await fetch(`/api/search?q=${encodeURIComponent(q)}`)).json(); } catch {}
+    if ($('watchSearch').value.trim() !== q) return; // you kept typing
+    watchHits = Object.fromEntries(r.map(g => [g.id, g]));
+    $('watchResults').innerHTML = r.map(g => watchRow(g, true)).join('') || '<p class="empty">No games found.</p>';
+  }, 400);
+});
+function watchPrefill(d) { // "Watch this price" on a Spotlight deal
+  watchHits = { [d.id]: { id: d.id, name: d.name, cents: d.cents, img: d.img } };
+  $('watchResults').innerHTML = watchRow(watchHits[d.id], true);
+  $('watchResults').scrollIntoView({ block: 'center' }); $('wt' + d.id).focus();
+}
+async function addWatch(id, btn) {
+  const g = watchHits[id], target = Math.round(parseFloat($('wt' + id).value) * 100);
+  if (!g || !(target > 0)) { $('wt' + id).focus(); return; }
+  btn.disabled = true;
+  await post('/api/do/watch-add', { id, name: g.name, target }).catch(() => {});
+  $('watchResults').innerHTML = ''; $('watchSearch').value = '';
+  loadWatch();
+}
+async function removeWatch(id) { await post(`/api/do/watch-remove?id=${encodeURIComponent(id)}`).catch(() => {}); loadWatch(); }
+async function loadWatch() {
+  let r; try { r = await (await fetch('/api/watch')).json(); } catch { return; }
+  $('watchList').innerHTML = (r.list || []).map(g => watchRow(g, false)).join('') || '<p class="hint" style="text-align:left;margin:0">Nothing watched yet. Search above, or hit 🎯 on a Spotlight deal.</p>';
+}
+loadWatch(); setInterval(loadWatch, 10 * 60000);
+
+// --- song bingo: the server marks squares as songs play; the page pays each finished line once ---
+const LINES = [...[0, 1, 2, 3, 4].map(r => [0, 1, 2, 3, 4].map(c => r * 5 + c)), ...[0, 1, 2, 3, 4].map(c => [0, 1, 2, 3, 4].map(r => r * 5 + c)), [0, 6, 12, 18, 24], [4, 8, 12, 16, 20]];
+async function loadBingo() {
+  let card; try { card = await (await fetch('/api/bingo')).json(); } catch { return; }
+  const sq = card.squares, done = LINES.map(l => l.every(i => sq[i].marked)), paid = card.paid || [];
+  const winning = new Set(LINES.filter((_, k) => done[k]).flat());
+  $('bingoGrid').innerHTML = sq.map((s, i) => `<div class="bsq ${s.kind} ${s.marked ? 'marked' : ''} ${winning.has(i) ? 'won' : ''}" role="gridcell"
+    aria-label="${esc(s.label)}${s.marked ? ', marked' : ''}">${s.kind === 'free' ? '★ FREE ★' : esc(s.label)}</div>`).join('');
+  let prize = 0; // line k = 0..11; 12 = blackout. The server remembers what's been paid.
+  for (let k = 0; k < 12; k++) if (done[k] && !paid.includes(k)) { prize += 150; await post(`/api/do/bingo-claim?line=${k}`); }
+  if (sq.every(s => s.marked) && !paid.includes(12)) { prize += 1000; await post('/api/do/bingo-claim?line=12'); notify('BINGO BLACKOUT!', 'Your whole song bingo card is filled: +1,000 chips.'); }
+  if (prize) { pay(prize); sfx.win(); }
+  const lines = done.filter(Boolean).length;
+  $('bingoMsg').textContent = prize ? `BINGO! +${prize} chips` : `${sq.filter(s => s.marked).length} / 25 marked · ${lines} line${lines === 1 ? '' : 's'} done`;
+}
+$('bingoNew').onclick = async () => {
+  if (!confirm('Deal a new bingo card? Lines you haven\'t finished on this one are lost.')) return;
+  await post('/api/do/bingo-new'); loadBingo();
+};
+setInterval(() => location.hash === '#bingo' && loadBingo(), 15000);
+
+// --- trophy room ---
+async function loadContract(check) {
+  let c; try { c = await (await fetch(`/api/contract${check ? '?check=1' : ''}`)).json(); } catch { return; }
+  if (!c) { $('contract').innerHTML = '<p class="empty">No contract today: Pulse needs a game you\'ve played with locked achievements.</p>'; return; }
+  if (c.done && !c.claimed) { await post('/api/do/contract-claim'); pay(c.reward); sfx.win(); c.claimed = true; }
+  const status = c.claimed ? `✅ Contract complete: ${c.reward} chips collected` : check ? 'Not unlocked yet. Go get it!' : `Reward: ${c.reward} chips`;
+  $('contract').innerHTML = `<img src="${header(c.id)}" alt="" onerror="this.style.visibility='hidden'">
+    <div class="terms">
+      <small class="upnext">The dealer's job for ${new Date(c.date + 'T00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</small>
+      <div class="ach ${c.done ? '' : 'locked'}"><img src="${esc(c.img)}" alt=""><div><b>${esc(c.name)}</b><small>${esc(c.desc)}</small></div><div class="meta">${esc(c.game)}<br>${rarity(c.pct)}</div></div>
+      <span class="status">${status}</span>
+      <div class="controls">${c.claimed ? '' : '<button class="btn" onclick="loadContract(true)">🔍 I did it, check</button>'}<a class="btn red" href="steam://rungameid/${esc(c.id)}">▶ Play ${esc(c.game)}</a></div>
+      <small style="color:var(--dim)">${c.pct}% of players have this one. A new contract every day; Pulse also checks your Steam profile every 30 minutes.</small>
+    </div>`;
+}
+async function loadChase() {
+  let l = []; try { l = await (await fetch('/api/chase')).json(); } catch {}
+  $('chase').innerHTML = l.map(g => `<div class="card chaserow"><img src="${header(g.id)}" alt="" onerror="this.style.visibility='hidden'">
+    <div><b>${esc(g.name)}</b> <small style="color:var(--dim)">${g.got} / ${g.total} · ${g.left} to go</small>${g.left <= 3 ? ' <span class="lowtag">🔥 almost there</span>' : ''}
+      <div class="bar"><i style="width:${g.got / g.total * 100}%"></i></div>
+      <div class="icons">${(g.missing || []).map(a => `<span title="${esc(a.desc)}"><img src="${esc(a.img)}" alt="" onerror="this.remove()">${esc(a.name)}${a.pct ? ` · ${(+a.pct).toFixed(1)}%` : ''}</span>`).join('')}</div></div>
+    <a class="btn red" href="steam://rungameid/${esc(g.id)}">▶ Play</a></div>`).join('') || '<p class="empty">No started games with achievements left to chase.</p>';
+}
+let trophyTimer;
+async function loadTrophies() {
+  let t; try { t = await (await fetch('/api/trophies')).json(); } catch { return; }
+  const list = t.list || [];
+  $('trophyNote').textContent = (t.scanning ? '🔍 Checking your games on Steam; plaques appear as each game is done. ' : '') + `${list.length} rare achievement${list.length === 1 ? '' : 's'} on the wall.`;
+  $('wall').innerHTML = list.map(a => `<div class="plaque" title="${esc(a.desc)}"><img src="${esc(a.img)}" alt=""><b>${esc(a.name)}</b><small>${esc(a.game)}</small>
+    <span class="rar">${(+a.pct).toFixed(1)}%</span><small>of players · won ${when(a.at)}</small></div>`).join('');
+  clearTimeout(trophyTimer);
+  if (t.scanning && location.hash === '#trophies') trophyTimer = setTimeout(loadTrophies, 15000);
+}
+
+// --- perk shop: looks bought with chips (kept in this browser, like the bankroll) ---
+const PERKS = {
+  felt: { title: 'Table felt', vars: ['--t1', '--t2', '--t3'], items: {
+    emerald: ['Emerald (house)', 0, ['#23a862', '#0f6a3a', '#063d20']], royal: ['Royal blue', 400, ['#3a5fe0', '#1d3596', '#0c1a52']],
+    crimson: ['Crimson', 400, ['#d12a35', '#8e0d15', '#3d0509']], violet: ['Velvet violet', 600, ['#9b4dff', '#5b1fb0', '#25094d']], noir: ['Black & gold', 900, ['#3a3226', '#1c1810', '#070605']],
+    teal: ['Ocean teal', 450, ['#1fb5a8', '#0d6f68', '#04312e']], orange: ['Sunset', 500, ['#ff8a3d', '#c4461a', '#4d1806']], pink: ['Flamingo', 600, ['#ff6fb5', '#b8256f', '#4a0a2a']], ice: ['Glacier', 700, ['#9fe3ff', '#3a8fc4', '#0f3550']] } },
+  back: { title: 'Card backs', vars: ['--cb1', '--cb2'], items: {
+    red: ['Casino red (house)', 0, ['#b3121b', '#8e0d15']], blue: ['Classic blue', 300, ['#1f3fbf', '#13287a']], green: ['Lucky green', 300, ['#16a34a', '#0b5c29']],
+    black: ['Midnight', 500, ['#2a2a2a', '#0a0a0a']], gold: ['Gold leaf', 700, ['#e3c164', '#8a6510']],
+    purple: ['Royal purple', 350, ['#7b2ff7', '#45128f']], teal: ['Teal', 350, ['#14b8a6', '#0b6158']], orange: ['Tangerine', 400, ['#ff7a1a', '#a8430a']], pink: ['Bubblegum', 450, ['#ff5fa8', '#a3215e']] } },
+  chip: { title: 'Chip design', vars: ['--chipc'], items: {
+    red: ['Red (house)', 0, ['#b3121b']], blue: ['Blue', 250, ['#1f3fbf']], green: ['Green', 250, ['#0a7a3c']], purple: ['Purple', 400, ['#7b2ff7']], black: ['High-roller black', 800, ['#111111']],
+    orange: ['Orange', 250, ['#f26b0f']], teal: ['Teal', 300, ['#0f9b8e']], pink: ['Pink', 350, ['#e83e8c']], gold: ['Gold', 700, ['#c9a227']] } },
+  jukebox: { title: 'Jukebox skin', vars: ['--jk1', '--jk2', '--jk3'], items: {
+    neon: ['Neon (house)', 0, ['#ff4fd8', '#ffe48f', '#3fe0ff']], gold: ['Gold rush', 500, ['#ffe48f', '#a8822c', '#fff3c4']], ice: ['Ice', 500, ['#7fe7ff', '#ffffff', '#3f7fff']],
+    fire: ['Fire', 500, ['#ff3b1f', '#ff9f1c', '#ffe48f']], toxic: ['Toxic', 600, ['#39ff14', '#c6ff00', '#00ffa3']],
+    ocean: ['Ocean', 500, ['#00c2ff', '#0066ff', '#7fffd4']], sunset: ['Sunset', 550, ['#ff5e62', '#ff9966', '#ffd86f']], galaxy: ['Galaxy', 650, ['#8a2be2', '#ff4fd8', '#3f7fff']], mono: ['Monochrome', 400, ['#ffffff', '#9a9a9a', '#e6e6e6']] } },
+  trim: { title: 'Trim & borders', vars: ['--gold', '--gold2', '--line'], items: {
+    gold: ['Gold (house)', 0, ['#e3c164', '#a8822c', 'rgba(227,193,100,.4)']], silver: ['Silver', 600, ['#d9dee5', '#8a929c', 'rgba(217,222,229,.4)']],
+    rose: ['Rose gold', 700, ['#f2b8a2', '#b0705a', 'rgba(242,184,162,.4)']], neon: ['Neon pink', 900, ['#ff5fd2', '#a3168a', 'rgba(255,95,210,.45)']], emerald: ['Emerald', 900, ['#4fe39a', '#1f8a55', 'rgba(79,227,154,.4)']],
+    copper: ['Copper', 600, ['#e0894f', '#9a5126', 'rgba(224,137,79,.4)']], ice: ['Ice blue', 800, ['#8fdcff', '#3a8fc4', 'rgba(143,220,255,.4)']], violet: ['Violet', 800, ['#b98cff', '#6b3fc4', 'rgba(185,140,255,.4)']], ruby: ['Ruby', 900, ['#ff5a6e', '#a8182c', 'rgba(255,90,110,.4)']] } },
+  button: { title: 'Button colour', vars: ['--red'], items: {
+    red: ['Casino red (house)', 0, ['#b3121b']], blue: ['Sapphire', 350, ['#1f3fbf']], green: ['Jade', 350, ['#0a7a3c']], purple: ['Amethyst', 450, ['#6d22c9']], black: ['Onyx', 600, ['#222222']],
+    orange: ['Amber', 350, ['#d9620b']], teal: ['Teal', 400, ['#0f8f84']], pink: ['Fuchsia', 450, ['#c2187a']], gold: ['Gold', 650, ['#a8822c']] } },
+  lights: { title: 'Stage lights', vars: ['--beam', '--bulb'], items: {
+    warm: ['Warm (house)', 0, ['rgba(255,230,160,.18)', '#ffe9a3']], cool: ['Cool white', 400, ['rgba(190,225,255,.2)', '#dff1ff']],
+    disco: ['Disco pink', 600, ['rgba(255,110,220,.2)', '#ff9be8']], club: ['Club green', 600, ['rgba(120,255,160,.18)', '#9dffb8']], fire: ['Fire', 700, ['rgba(255,120,60,.2)', '#ffb36b']],
+    ocean: ['Ocean blue', 600, ['rgba(80,160,255,.2)', '#8cc4ff']], violet: ['UV violet', 650, ['rgba(170,110,255,.2)', '#c9a3ff']], blood: ['Blood moon', 750, ['rgba(255,50,60,.2)', '#ff6b74']], gold: ['Golden hour', 500, ['rgba(255,200,80,.22)', '#ffd36b']] } },
+  // video backgrounds: [name, price, swatch colours, YouTube video id (the 11 characters after watch?v=)]; plays muted on loop
+  bg: { title: 'Background', vars: [], items: {
+    scene: ['Casino scene (house)', 0, ['#3a0a14', '#12030a']],
+    // example: lofi: ['Lofi girl', 1000, ['#2a1a4a'], 'jfKfPfyJRdk'],
+  } },
+};
+let owned = {}, equip = {};
+try { owned = JSON.parse(localStorage.getItem('pulse-owned') || '{}'); equip = JSON.parse(localStorage.getItem('pulse-equip') || '{}'); } catch {}
+function applyPerks() {
+  for (const [cat, p] of Object.entries(PERKS)) {
+    const item = p.items[equip[cat]] || Object.values(p.items)[0];
+    p.vars.forEach((v, i) => document.documentElement.style.setProperty(v, item[2][i]));
+  }
+  applyBg((PERKS.bg.items[equip.bg] || [])[3]);
+}
+function perk(cat, key) {
+  const price = PERKS[cat].items[key][1], id = `${cat}.${key}`;
+  if (price && !owned[id]) { if (bank < price) return; pay(-price); owned[id] = true; sfx.win(); }
+  equip[cat] = key;
+  try { localStorage.setItem('pulse-owned', JSON.stringify(owned)); localStorage.setItem('pulse-equip', JSON.stringify(equip)); } catch {}
+  applyPerks(); renderShop();
+}
+function renderShop() {
+  $('shopItems').innerHTML = Object.entries(PERKS).map(([cat, p]) => `<section class="shopcat"><h2>${p.title}</h2><div class="shopitems">${Object.entries(p.items).map(([key, [name, price, colors]]) => {
+    const have = !price || owned[`${cat}.${key}`], on = (equip[cat] || Object.keys(p.items)[0]) === key;
+    return `<div class="card perk ${on ? 'equipped' : ''}"><div class="swatch" style="background:${p.items[key][3] ? `center/cover url(https://i.ytimg.com/vi/${esc(p.items[key][3])}/mqdefault.jpg), ` : ''}${colors.length > 1 ? `linear-gradient(135deg, ${colors.join(', ')})` : colors[0]}"></div><b>${esc(name)}</b>
+      <button class="btn ${have ? '' : 'red'}" ${on || (!have && bank < price) ? 'disabled' : ''} onclick="perk('${cat}', '${key}')">${on ? 'Equipped' : have ? 'Equip' : `Buy · ${price} 🪙`}</button></div>`;
+  }).join('')}</div></section>`).join('');
+}
+applyPerks();
+
+// --- movie theater: your YouTube, read by Pulse with your own Google app (tokens stay in app.ps1) ---
+let ytView = null, ytPoll; // ytView: what the grid shows { list, id, title, next }
+async function loadTheater() {
+  let s = {}; try { s = await (await fetch('/api/yt/status')).json(); } catch {}
+  $('ytSetup').hidden = !!s.keys; $('ytSignin').hidden = !s.keys || !!s.signedIn; $('ytLib').hidden = $('ytOut').hidden = !s.signedIn;
+  if (s.signedIn && !ytView) ytOpen('home');
+  return s;
+}
+const ytTitles = { home: 'New from your subscriptions', subs: 'Subscriptions', playlists: 'Your playlists', liked: 'Liked videos' };
+async function ytOpen(list, id = '', title = ytTitles[list], more = false, q = '') {
+  if (!more) { ytView = { list, id, title, next: '', q }; $('ytGrid').innerHTML = '<p class="empty">Loading…</p>'; $('ytMore').hidden = true; }
+  const v = ytView;
+  document.querySelectorAll('[data-yt]').forEach(b => b.setAttribute('aria-pressed', b.dataset.yt === list));
+  $('ytTitle').textContent = title;
+  let r; try { r = await (await fetch(`/api/yt?list=${encodeURIComponent(list)}&id=${encodeURIComponent(id)}&q=${encodeURIComponent(v.q)}&page=${encodeURIComponent(more ? v.next : '')}`)).json(); } catch { r = { error: 'Is Pulse running?', signedIn: true }; }
+  if (v !== ytView) return; // clicked somewhere else meanwhile
+  if (r.error) { $('ytGrid').innerHTML = `<p class="empty">Couldn’t load from YouTube: ${esc(r.error)}</p>`; if (!r.signedIn) { ytView = null; loadTheater(); } return; }
+  const cards = (list === 'playlist' && !more ? [{ kind: 'playall', id, title: '▶ Play all', thumb: r.items[0]?.thumb }] : []).concat(r.items).map(it =>
+    `<button class="card ytcard" data-kind="${esc(it.kind)}" data-id="${esc(it.id)}" data-title="${esc(it.title)}"><img src="${esc(it.thumb)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+      <b>${esc(it.title)}</b><small>${esc(it.kind === 'video' ? it.channel : it.kind === 'playlist' ? `${it.count} videos` : it.kind === 'channel' ? 'Channel · latest uploads' : title)}</small></button>`).join('');
+  if (more) $('ytGrid').insertAdjacentHTML('beforeend', cards); else $('ytGrid').innerHTML = cards || '<p class="empty">Nothing here.</p>';
+  v.next = r.next; $('ytMore').hidden = !r.next;
+}
+function ytPlay(video, playlist) {
+  if (!/^[\w-]{11}$/.test(video) && !/^[\w-]{2,64}$/.test(playlist)) return;
+  const f = Object.assign(document.createElement('iframe'), { title: 'YouTube player', allow: 'autoplay; encrypted-media; fullscreen; picture-in-picture', allowFullscreen: true,
+    src: video ? `https://www.youtube.com/embed/${video}?autoplay=1&rel=0` : `https://www.youtube.com/embed/videoseries?list=${playlist}&autoplay=1&rel=0` });
+  f.referrerPolicy = 'strict-origin-when-cross-origin'; // YouTube refuses to play embeds sent with no referrer
+  f.sandbox = 'allow-scripts allow-same-origin allow-presentation'; // no popups or navigating Pulse away
+  $('ytScreen').replaceChildren(f); $('ytScreen').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+const ytStop = () => { if ($('ytScreen').querySelector('iframe')) $('ytScreen').innerHTML = '<p class="empty">🍿 Pick something to watch below.</p>'; };
+$('ytGrid').addEventListener('click', e => {
+  const c = e.target.closest('.ytcard'); if (!c) return;
+  const { kind, id, title } = c.dataset;
+  if (kind === 'video') ytPlay(id); else if (kind === 'playall') ytPlay('', id); else ytOpen(kind, id, title);
+});
+document.querySelectorAll('[data-yt]').forEach(b => b.onclick = () => ytOpen(b.dataset.yt));
+$('ytMore').onclick = () => ytOpen(ytView.list, ytView.id, ytView.title, true);
+$('ytSearch').onsubmit = e => {
+  e.preventDefault();
+  const q = e.target.elements.q.value.trim();
+  if (q) ytOpen('search', '', `Results for “${q}”`, false, q); // ytTitle is set with textContent, so the query is shown as text
+};
+$('ytKeys').onsubmit = async e => {
+  e.preventDefault();
+  const el = e.target.elements, r = await post('/api/do/yt-keys', { clientId: el.clientId.value, clientSecret: el.clientSecret.value }).catch(() => null);
+  if (!r?.ok) { $('ytKeysMsg').textContent = 'That doesn’t look like a Desktop app client ID and secret.'; return; }
+  e.target.reset(); $('ytKeysMsg').textContent = ''; loadTheater();
+};
+$('ytRekey').onclick = () => { $('ytSetup').hidden = false; $('ytSetup').scrollIntoView({ behavior: 'smooth' }); };
+$('ytIn').onclick = async () => {
+  let r; try { r = await (await post('/api/yt-login')).json(); } catch {}
+  if (!r?.url) { $('ytInMsg').textContent = 'Couldn’t start sign-in. Is Pulse running?'; return; }
+  open(r.url); // Pulse's window hands Google pages to your browser
+  $('ytInMsg').textContent = 'Finish signing in in your browser…';
+  clearInterval(ytPoll);
+  ytPoll = setInterval(async () => { const s = await loadTheater(); if (s.signedIn || location.hash !== '#theater') { clearInterval(ytPoll); $('ytInMsg').textContent = ''; } }, 3000);
+};
+$('ytOut').onclick = async () => { await post('/api/do/yt-logout').catch(() => {}); ytView = null; ytStop(); $('ytGrid').innerHTML = ''; loadTheater(); };
+
+// --- settings page ---
+async function loadSettingsForm() {
+  try { cfg = await (await fetch('/api/settings')).json(); } catch {}
+  for (const el of $('settingsForm').elements) if (el.name in cfg) el.type === 'checkbox' ? (el.checked = !!cfg[el.name]) : (el.value = cfg[el.name]);
+}
+$('settingsForm').onsubmit = async e => {
+  e.preventDefault();
+  const body = {};
+  for (const el of e.target.elements) if (el.name) body[el.name] = el.type === 'checkbox' ? el.checked : (el.type === 'number' || el.type === 'range') ? +el.value : el.value;
+  try { await post('/api/do/settings', body); $('settingsMsg').textContent = '✔ Saved'; } catch { $('settingsMsg').textContent = 'Couldn’t save. Is Pulse running?'; }
+  await loadSettingsForm();
+  if (allDeals.length) filterDeals(deals[dealIdx]?.id, dealIdx); // new currency symbol on the price filters
+  loadWatch();
+};
+$('settingsForm').elements.volume.addEventListener('input', e => { cfg.volume = +e.target.value; sfx.tick(); }); // hear it as you slide
+
+function route() {
+  const id = location.hash.slice(1), view = ['roulette', 'slots', 'blackjack', 'baccarat', 'scratch', 'bingo', 'trophies', 'shop', 'settings', 'theater'].includes(id) ? id : 'lobby';
+  if ($('detail').open) $('detail').close();
+  document.querySelectorAll('body > main').forEach(m => m.hidden = m.id !== view);
+  if (view === 'roulette') loadInstalled();
+  if (view === 'slots') initReels();
+  if (view === 'baccarat' && !bac) newMatch();
+  if (view === 'blackjack' && !bj) bjRender();
+  if (view === 'bingo') loadBingo();
+  if (view === 'trophies') { loadContract(); loadChase(); loadTrophies(); }
+  if (view === 'shop') renderShop();
+  if (view === 'settings') loadSettingsForm();
+  if (view === 'theater') loadTheater(); else ytStop(); // leaving the theater stops the movie
+}
+addEventListener('hashchange', route); route();
+
+pollNow(); setInterval(pollNow, 1000); tick();
+pollStats(); setInterval(pollStats, 30000);
+</script>
+</body>
+</html>
